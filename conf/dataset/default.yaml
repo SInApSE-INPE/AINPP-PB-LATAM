@@ -1,0 +1,25 @@
+# Dataset configuration
+data_path: /path/to/your/data.zarr # User should update this
+input_vars:
+  - gsmap_nrt
+output_vars:
+  - gsmap_mvk
+
+# Time periods
+train_period:
+  start: "2018-01-01"
+  end: "2022-12-31"
+val_period:
+  start: "2023-01-01"
+  end: "2023-12-31"
+test_period:
+  start: "2024-01-01"
+  end: "2024-12-31"
+
+# Spatial bounds (optional, if cropping is needed)
+lat_range: [-55, 33]
+lon_range: [-120, -23]
+
+batch_size: 32
+num_workers: 4
+pin_memory: true

@@ -1,0 +1,8 @@
+# Training configuration
+epochs: 10
+learning_rate: 1e-4
+seed: 42
+device: cuda # or cpu
+experiment_name: nowcasting_benchmark
+distributed: false
+dist_backend: nccl

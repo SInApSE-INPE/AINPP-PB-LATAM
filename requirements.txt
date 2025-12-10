@@ -1,0 +1,7 @@
+torch
+torchvision
+zarr
+hydra-core
+mlflow
+pandas
+tqdm
