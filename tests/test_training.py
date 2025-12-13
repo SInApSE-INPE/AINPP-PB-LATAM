@@ -47,7 +47,8 @@ class TestTraining(unittest.TestCase):
                 "device": "cpu",
                 "learning_rate": 0.001,
                 "epochs": 1,
-                "experiment_name": "test_exp"
+                "experiment_name": "test_exp",
+                "loss": {"name": "mse"}
             },
             "model": {},
             "dataset": {}
@@ -83,7 +84,8 @@ class TestTraining(unittest.TestCase):
                 "device": "cpu",
                 "learning_rate": 0.001,
                 "epochs": 2,
-                "experiment_name": "test_fit"
+                "experiment_name": "test_fit",
+                "loss": {"name": "mse"}
             },
             "model": {},
             "dataset": {}

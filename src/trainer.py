@@ -7,6 +7,8 @@ from tqdm import tqdm
 
 from torch.nn.parallel import DistributedDataParallel as DDP
 
+from src.losses import get_loss
+
 class Trainer:
     def __init__(self, model, train_loader, val_loader, config, rank=0, local_rank=0):
         self.model = model
@@ -24,7 +26,7 @@ class Trainer:
             self.device = torch.device(config.training.device if torch.cuda.is_available() else 'cpu')
             self.model.to(self.device)
         
-        self.criterion = nn.MSELoss() # Assuming regression for nowcasting
+        self.criterion = get_loss(config.training.loss)
         self.optimizer = optim.Adam(self.model.parameters(), lr=config.training.learning_rate)
         
         self.epochs = config.training.epochs
