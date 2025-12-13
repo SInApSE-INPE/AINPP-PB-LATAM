@@ -5,3 +5,6 @@ hydra-core
 mlflow
 pandas
 tqdm
+scikit-learn
+matplotlib
+scipy

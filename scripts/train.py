@@ -1,3 +1,5 @@
+import sys;
+sys.path.insert(0, "/prj/ideeps/adriano.almeida/benchmark")
 import hydra
 import os
 import torch
