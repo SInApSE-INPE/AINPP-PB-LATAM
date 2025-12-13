@@ -3,6 +3,8 @@ defaults:
   - dataset: default
   - model: unet
   - training: default
+  - evaluation: default
+  - visualization: default
 
 hydra:
   run:

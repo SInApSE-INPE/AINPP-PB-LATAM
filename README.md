@@ -37,9 +37,43 @@ torchrun --nproc_per_node=4 scripts/train.py training.distributed=true
 ```
 
 ### Evaluation
+To evaluate a trained model, use the `scripts/evaluate.py` script. This module calculates continuous, categorical, and probabilistic metrics and generates performance diagrams.
+
 ```bash
 python scripts/evaluate.py
 ```
+
+#### Configuration
+You can configure the evaluation process via `conf/config.yaml` or command-line arguments:
+
+-   **Checkpoint**: Path to the model checkpoint.
+    ```bash
+    python scripts/evaluate.py checkpoint=outputs/my_run/checkpoint.pth
+    ```
+-   **Thresholds**: specific precipitation thresholds (mm/h) for categorical metrics.
+    ```yaml
+    evaluation:
+      thresholds: [0.5, 2.0, 5.0, 10.0]
+    ```
+-   **Region**: Region parameter for the standardizer.
+    ```yaml
+    evaluation:
+      region: ainpp-amazon-basin
+    ```
+-   **Max Batches**: Limit the number of batches for quick debugging.
+    ```yaml
+    evaluation:
+      max_batches: 10
+    ```
+
+#### Outputs
+The evaluation script saves results to `outputs/evaluation/`:
+
+-   **`metrics.json`**: Contains aggregated metrics.
+    -   **Continuous**: MSE, RMSE, MAE, R², Pearson Correlation.
+    -   **Categorical** (per threshold): POD, FAR, TS (CSI), ETS, HSS.
+    -   **Probabilistic**: CRPS (for ensembles or deterministic approximation).
+-   **`performance_diagram.png`**: A visualization of Success Ratio vs. POD (Probability of Detection) with CSI contours.
 
 ## Project Structure
 - `conf/`: Hydra configuration files.

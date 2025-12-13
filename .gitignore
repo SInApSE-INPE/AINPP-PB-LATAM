@@ -2,6 +2,8 @@ data/
 mlruns/
 outputs/
 __pycache__/*
+tests/dummy_env/
+tests/dummy_env/**
 
 *pyc
 

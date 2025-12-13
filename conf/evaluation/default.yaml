@@ -1,0 +1,4 @@
+thresholds: [0.5, 2.0, 5.0]
+max_batches: null
+region: ainpp-amazon-basin
+checkpoint: outputs/checkpoint.pth

@@ -1,0 +1,13 @@
+style:
+  context: paper
+  style: whitegrid
+  palette: deep
+  font_family: sans-serif
+  dpi: 300
+
+maps:
+  cmap: viridis
+  diff_cmap: coolwarm
+
+animation:
+  fps: 5

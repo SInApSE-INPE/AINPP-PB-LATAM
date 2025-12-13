@@ -6,7 +6,8 @@ def get_model(config):
     if model_name == 'unet':
         return UNet(
             n_channels=config.model.in_channels,
-            n_classes=config.model.out_channels
+            n_classes=config.model.out_channels,
+            bilinear=config.model.get("bilinear", True)
         )
     # Add other models here (e.g., resnet, inception)
     # elif model_name == 'resnet':
