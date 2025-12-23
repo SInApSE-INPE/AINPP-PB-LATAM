@@ -4,11 +4,7 @@ def get_model(config):
     model_name = config.model.name
     
     if model_name == 'unet':
-        return UNet(
-            n_channels=config.model.in_channels,
-            n_classes=config.model.out_channels,
-            bilinear=config.model.get("bilinear", True)
-        )
+        return UNet(config)
     # Add other models here (e.g., resnet, inception)
     # elif model_name == 'resnet':
     #     return ResNet(...)

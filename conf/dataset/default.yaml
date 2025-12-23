@@ -1,5 +1,5 @@
 # Dataset configuration
-data_path: /path/to/your/data.zarr # User should update this
+data_path: /prj/ideeps/adriano.almeida/data/ainpp/legacy/gsmap_nrt+mvk_log_zscore_ainpp-amazon-basin.zarr/train # User should update this
 input_vars:
   - gsmap_nrt
 output_vars:

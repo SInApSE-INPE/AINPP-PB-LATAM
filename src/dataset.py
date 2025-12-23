@@ -34,10 +34,61 @@ class NowcastingDataset(Dataset):
         self.start_date = pd.to_datetime(period.start)
         self.end_date = pd.to_datetime(period.end)
         
-        # TODO: Implement actual time indexing logic based on the Zarr structure.
-        # This is a placeholder assuming we have a list of valid timestamps or indices.
-        # For now, we'll simulate a length.
-        self.length = 100 # Placeholder
+        if self.store is not None:
+             # Assuming 'time' coordinate exists in zarr
+             if 'time' in self.store:
+                 try:
+                     # Load time array.
+                     time_array = self.store['time'][:]
+                     
+                     # Check for CF conventions in attributes
+                     if hasattr(self.store['time'], 'attrs') and 'units' in self.store['time'].attrs:
+                         units_str = self.store['time'].attrs['units']
+                         # Format: "unit since date"
+                         try:
+                             parts = units_str.split(' since ')
+                             if len(parts) == 2:
+                                 unit = parts[0]
+                                 origin = parts[1]
+                                 
+                                 # Map common CF units to pandas units
+                                 # CF: hours, minutes, seconds, days
+                                 # Pandas: h, m, s, D
+                                 unit_map = {'hours': 'h', 'minutes': 'm', 'seconds': 's', 'days': 'D'}
+                                 pd_unit = unit_map.get(unit, 'h') # Default to hours if unknown/complex
+                                 
+                                 all_times = pd.to_datetime(time_array, unit=pd_unit, origin=pd.Timestamp(origin))
+                             else:
+                                 # Fallback
+                                 all_times = pd.to_datetime(time_array)
+                         except Exception as e:
+                             print(f"Error parsing time units '{units_str}': {e}. Fallback to default.")
+                             all_times = pd.to_datetime(time_array)
+                     else:
+                         all_times = pd.to_datetime(time_array)
+                     
+                     # Create boolean mask
+                     mask = (all_times >= self.start_date) & (all_times <= self.end_date)
+                     
+                     # Get valid indices
+                     self.valid_indices = np.where(mask)[0]
+                     self.length = len(self.valid_indices)
+                     
+                     if self.length == 0:
+                         print(f"Warning: No samples found in period {self.start_date} to {self.end_date}. Data range: {all_times.min()} to {all_times.max()}")
+                         
+                 except Exception as e:
+                     print(f"Error loading/filtering time: {e}. Using dummy length.")
+                     self.valid_indices = np.arange(100)
+                     self.length = 100
+             else:
+                 print("Warning: 'time' coordinate not found in Zarr. Using dummy length.")
+                 self.valid_indices = np.arange(100)
+                 self.length = 100
+        else:
+             # Dummy mode
+             self.valid_indices = np.arange(100)
+             self.length = 100
         
         self.input_vars = config.dataset.input_vars
         self.output_vars = config.dataset.output_vars

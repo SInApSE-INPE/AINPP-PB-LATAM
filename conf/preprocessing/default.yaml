@@ -1,0 +1,18 @@
+# @package _global_
+defaults:
+  - region@region: amazon_basin
+  - _self_
+
+years:
+  train: [2018, 2019, 2020, 2021, 2022]
+  val: [2023]
+  test: [2024]
+
+paths:
+  input_base: "/prj/ideeps/adriano.almeida/data/ainpp/regions"
+  output_base: "/prj/ideeps/adriano.almeida/data/ainpp/legacy"
+  params_base: "/prj/ideeps/adriano.almeida/data/ainpp/legacy/model_params"
+
+processing:
+  chunk_time: 360 # hours
+  compression_level: 3

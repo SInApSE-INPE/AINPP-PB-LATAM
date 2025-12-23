@@ -1,0 +1,7 @@
+name: amazon-basin
+lat_range: [-21, 9]
+lon_range: [-80, -44]
+dims: [300, 360]
+chunks:
+  lat: 150
+  lon: 180
