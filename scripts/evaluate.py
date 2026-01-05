@@ -7,7 +7,7 @@ from omegaconf import DictConfig, OmegaConf
 # Add project root to path to ensure imports work
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from src.dataset import NowcastingDataset
+from src.datasets import NowcastingDataset
 from src.evaluation.evaluator import Evaluator
 from src.utils.standardization import LogZScoreStandardizer
 from src.models.factory import get_model # Assuming this exists or using direct import if not

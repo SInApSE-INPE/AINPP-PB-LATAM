@@ -6,7 +6,7 @@ import torch
 import torch.distributed as dist
 from omegaconf import DictConfig
 from torch.utils.data import DataLoader, DistributedSampler
-from src.dataset import NowcastingDataset
+from src.datasets import NowcastingDataset
 from src.models.factory import get_model
 from src.trainer import Trainer
 
