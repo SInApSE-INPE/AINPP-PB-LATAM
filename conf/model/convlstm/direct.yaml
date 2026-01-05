@@ -1,0 +1,7 @@
+_target_: src.models.convlstm.forecaster.ConvLSTMMultiHorizon
+
+input_channels: ${input_channels}
+hidden_channels: ${hidden_channels}
+kernel_size: ${kernel_size}
+output_timesteps: ${output_timesteps}
+

@@ -2,8 +2,8 @@
 dataset:
   _target_: src.datasets.gsmap.AINPPPBLATAMDataset
   zarr_path: "/prj/ideeps/adriano.almeida/data/ainpp/legacy/AINPP-PB-LATAM.zarr"
-  input_timesteps: 12
-  output_timesteps: 6
+  input_timesteps: ${input_timesteps}
+  output_timesteps: ${output_timesteps}
   patch_size: 320
   patch_stride: 320
   consolidated: true
@@ -35,4 +35,4 @@ overrides:
   validation:
     group: "validation"
     stride: 6             
-    steps_per_epoch: null
+    steps_per_epoch: 100 # null

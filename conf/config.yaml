@@ -1,8 +1,21 @@
+# ----- Base Configuration File -----
+input_timesteps: 12
+input_channels: 1
+hidden_channels: [64, 64, 64]
+kernel_size: 7
+output_timesteps: 6
+
+
 defaults:
   - _self_
   - model: unet/direct
   - dataset: gsmap
   - loss: mse_ssim
+
+system:
+  num_workers: 4
+  pin_memory: true
+  sync_bn: false
 
 training:
   batch_size: 16
