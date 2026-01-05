@@ -1,0 +1,9 @@
+_target_: src.models.unet.forecaster.UNetAutoRegressive
+
+input_timesteps: 12
+input_channels: 1
+output_timesteps: 6
+features: [64, 128, 256, 512]
+kernel_size: 3
+bilinear: true
+nonnegativity: "relu"

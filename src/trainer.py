@@ -21,7 +21,7 @@ from torch.utils.data.distributed import DistributedSampler
 from torch.utils.tensorboard import SummaryWriter
 from tqdm import tqdm
 
-from dataset import GSMaPZarrDataset
+from datasets import GSMaPZarrDataset
 from models.unet import UNetMultiHorizon
 
 

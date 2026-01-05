@@ -5,7 +5,7 @@ import zarr
 import numpy as np
 import torch
 from omegaconf import OmegaConf
-from src.dataset import NowcastingDataset
+from src.datasets import NowcastingDataset
 
 class TestDataset(unittest.TestCase):
     def setUp(self):

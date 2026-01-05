@@ -3,7 +3,7 @@ from unittest.mock import MagicMock, patch
 import pandas as pd
 import numpy as np
 from omegaconf import OmegaConf
-from src.dataset import NowcastingDataset
+from src.datasets import NowcastingDataset
 
 class TestDatasetSubset(unittest.TestCase):
     def setUp(self):

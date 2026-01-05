@@ -1,0 +1,4 @@
+_target_: src.losses.FocalLoss
+alpha: 0.5
+gamma: 2.0
+reduction: "mean"

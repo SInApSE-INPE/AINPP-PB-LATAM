@@ -1,0 +1,3 @@
+_target_: src.losses.SSIMLoss
+window_size: 11
+size_average: true
