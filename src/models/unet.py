@@ -1,341 +1,526 @@
+from __future__ import annotations
+
+import logging
+from dataclasses import dataclass
+from typing import Iterable, List, Optional, Sequence, Tuple
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-def get_activation(name):
-    name = name.lower()
-    if name == 'relu':
-        return nn.ReLU(inplace=True)
-    elif name == 'leaky_relu':
-        return nn.LeakyReLU(inplace=True)
-    elif name == 'elu':
-        return nn.ELU(inplace=True)
-    elif name == 'gelu':
-        return nn.GELU()
-    else:
-        raise ValueError(f"Unknown activation: {name}")
+logger = logging.getLogger(__name__)
 
-def get_norm(name, channels):
-    name = name.lower()
-    if name == 'batch':
-        return nn.BatchNorm2d(channels)
-    elif name == 'instance':
-        return nn.InstanceNorm2d(channels)
-    elif name == 'group':
-        return nn.GroupNorm(num_groups=8, num_channels=channels) # Default 8 groups, modify if needed
-    elif name == 'none':
-        return nn.Identity()
-    else:
-        raise ValueError(f"Unknown normalization: {name}")
 
+# -----------------------------
+# Utilities
+# -----------------------------
+def count_trainable_parameters(model: nn.Module) -> int:
+    """Return the number of trainable parameters in a PyTorch module."""
+    return sum(p.numel() for p in model.parameters() if p.requires_grad)
+
+
+def _configure_logging(level: int = logging.INFO) -> None:
+    """Configure a basic console logger."""
+    logging.basicConfig(
+        level=level,
+        format="%(asctime)s | %(levelname)s | %(name)s | %(message)s",
+    )
+
+
+# -----------------------------
+# Building blocks
+# -----------------------------
 class DoubleConv(nn.Module):
-    """(convolution => [BN] => ReLU) * 2"""
-    def __init__(self, in_channels, out_channels, mid_channels=None, kernel_size=3, padding=1, activation='relu', norm='batch', dropout=0.0):
+    """
+    Two consecutive convolutional layers with BatchNorm and ReLU (classic U-Net pattern).
+
+    Parameters
+    ----------
+    in_channels:
+        Number of input channels.
+    out_channels:
+        Number of output channels.
+    kernel_size:
+        Convolution kernel size.
+    mid_channels:
+        If provided, sets an intermediate channel size for the first convolution.
+        If None, defaults to out_channels.
+    norm_layer:
+        Normalization layer constructor (defaults to nn.BatchNorm2d).
+    activation:
+        Activation function constructor (defaults to nn.ReLU).
+    """
+
+    def __init__(
+        self,
+        in_channels: int,
+        out_channels: int,
+        *,
+        kernel_size: int = 3,
+        mid_channels: Optional[int] = None,
+        norm_layer: type[nn.Module] = nn.BatchNorm2d,
+        activation: type[nn.Module] = nn.ReLU,
+    ) -> None:
         super().__init__()
-        if not mid_channels:
-            mid_channels = out_channels
-            
-        layers = []
-        # Conv 1
-        layers.append(nn.Conv2d(in_channels, mid_channels, kernel_size=kernel_size, padding=padding, bias=False))
-        layers.append(get_norm(norm, mid_channels))
-        layers.append(get_activation(activation))
-        if dropout > 0:
-            layers.append(nn.Dropout2d(p=dropout))
-            
-        # Conv 2
-        layers.append(nn.Conv2d(mid_channels, out_channels, kernel_size=kernel_size, padding=padding, bias=False))
-        layers.append(get_norm(norm, out_channels))
-        layers.append(get_activation(activation))
-        if dropout > 0:
-            layers.append(nn.Dropout2d(p=dropout))
+        if kernel_size <= 0 or kernel_size % 2 == 0:
+            raise ValueError("kernel_size must be a positive odd integer to preserve spatial dimensions via padding.")
 
-        self.double_conv = nn.Sequential(*layers)
+        mid_channels = out_channels if mid_channels is None else mid_channels
+        padding = kernel_size // 2
 
-    def forward(self, x):
-        return self.double_conv(x)
-
-class Down(nn.Module):
-    """Downscaling with maxpool then double conv"""
-    def __init__(self, in_channels, out_channels, pooling='max', **kwargs):
-        super().__init__()
-        if pooling == 'max':
-            pool = nn.MaxPool2d(2)
-        elif pooling == 'avg':
-            pool = nn.AvgPool2d(2)
-        else:
-            raise ValueError(f"Unknown pooling: {pooling}")
-            
-        self.maxpool_conv = nn.Sequential(
-            pool,
-            DoubleConv(in_channels, out_channels, **kwargs)
+        self.block = nn.Sequential(
+            nn.Conv2d(in_channels, mid_channels, kernel_size=kernel_size, padding=padding, bias=False),
+            norm_layer(mid_channels),
+            activation(inplace=True),
+            nn.Conv2d(mid_channels, out_channels, kernel_size=kernel_size, padding=padding, bias=False),
+            norm_layer(out_channels),
+            activation(inplace=True),
         )
 
-    def forward(self, x):
-        return self.maxpool_conv(x)
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        return self.block(x)
 
-class Up(nn.Module):
-    """Upscaling then double conv"""
-    def __init__(self, in_channels, out_channels, bilinear=True, **kwargs):
+
+class DownBlock(nn.Module):
+    """
+    Downsampling block: MaxPool(2) followed by DoubleConv.
+
+    Parameters
+    ----------
+    in_channels:
+        Number of input channels.
+    out_channels:
+        Number of output channels.
+    kernel_size:
+        Convolution kernel size used in DoubleConv.
+    """
+
+    def __init__(self, in_channels: int, out_channels: int, *, kernel_size: int = 3) -> None:
         super().__init__()
+        self.block = nn.Sequential(
+            nn.MaxPool2d(kernel_size=2),
+            DoubleConv(in_channels, out_channels, kernel_size=kernel_size),
+        )
 
-        # if bilinear, use the normal convolutions to reduce the number of channels
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        return self.block(x)
+
+
+class UpBlock(nn.Module):
+    """
+    Upsampling block: upsample + skip concatenation + DoubleConv.
+
+    Two modes are supported:
+    - bilinear=True: uses nn.Upsample + DoubleConv with a mid_channels reduction heuristic.
+    - bilinear=False: uses nn.ConvTranspose2d + DoubleConv.
+
+    Notes
+    -----
+    This block uses padding to handle odd-sized mismatches between skip and upsampled tensors.
+    """
+
+    def __init__(
+        self,
+        in_channels: int,
+        skip_channels: int,
+        out_channels: int,
+        *,
+        kernel_size: int = 3,
+        bilinear: bool = True,
+    ) -> None:
+        super().__init__()
+        self.bilinear = bilinear
+
         if bilinear:
-            self.up = nn.Upsample(scale_factor=2, mode='bilinear', align_corners=True)
-            self.conv = DoubleConv(in_channels, out_channels, in_channels // 2, **kwargs)
+            self.up = nn.Upsample(scale_factor=2, mode="bilinear", align_corners=True)
+            # after concat: channels = in_channels + skip_channels
+            # mid_channels heuristic: reduce to in_channels // 2 (common in U-Net variants)
+            self.conv = DoubleConv(
+                in_channels + skip_channels,
+                out_channels,
+                kernel_size=kernel_size,
+                mid_channels=max(in_channels // 2, out_channels),
+            )
         else:
+            # transposed conv halves channels by design here
             self.up = nn.ConvTranspose2d(in_channels, in_channels // 2, kernel_size=2, stride=2)
-            self.conv = DoubleConv(in_channels, out_channels, **kwargs)
+            self.conv = DoubleConv(in_channels // 2 + skip_channels, out_channels, kernel_size=kernel_size)
 
-    def forward(self, x1, x2):
-        x1 = self.up(x1)
-        # input is CHW
-        diffY = x2.size()[2] - x1.size()[2]
-        diffX = x2.size()[3] - x1.size()[3]
+    @staticmethod
+    def _pad_to_match(x: torch.Tensor, ref: torch.Tensor) -> torch.Tensor:
+        """Pad tensor x to match spatial size of ref (centered padding)."""
+        diff_y = ref.size(2) - x.size(2)
+        diff_x = ref.size(3) - x.size(3)
 
-        x1 = F.pad(x1, [diffX // 2, diffX - diffX // 2,
-                        diffY // 2, diffY - diffY // 2])
-        x = torch.cat([x2, x1], dim=1)
+        if diff_y == 0 and diff_x == 0:
+            return x
+
+        pad_left = diff_x // 2
+        pad_right = diff_x - pad_left
+        pad_top = diff_y // 2
+        pad_bottom = diff_y - pad_top
+        return F.pad(x, [pad_left, pad_right, pad_top, pad_bottom])
+
+    def forward(self, x: torch.Tensor, skip: torch.Tensor) -> torch.Tensor:
+        x = self.up(x)
+        x = self._pad_to_match(x, skip)
+        x = torch.cat([skip, x], dim=1)
         return self.conv(x)
 
-class OutConv(nn.Module):
-    def __init__(self, in_channels, out_channels):
-        super(OutConv, self).__init__()
-        self.conv = nn.Conv2d(in_channels, out_channels, kernel_size=1)
 
-    def forward(self, x):
-        return self.conv(x)
+# -----------------------------
+# U-Net core
+# -----------------------------
+@dataclass(frozen=True)
+class UNetConfig:
+    """
+    Configuration for a flexible 2D U-Net.
 
-class UNet(nn.Module):
-    def __init__(self, config):
-        super(UNet, self).__init__()
-        
-        # Parse config
-        if hasattr(config, 'model'):
-             conf = config.model
-        else:
-            conf = config
+    Attributes
+    ----------
+    in_channels:
+        Number of input channels.
+    out_channels:
+        Number of output channels.
+    features:
+        Channel widths per level (encoder). Must have length >= 2.
+    kernel_size:
+        Kernel size for DoubleConv blocks (odd integer recommended).
+    bilinear:
+        If True, uses bilinear upsampling. Otherwise uses transposed convolutions.
+    """
 
-        self.n_channels = conf.in_channels
-        self.n_classes = conf.out_channels
-        self.bilinear = conf.get('bilinear', True)
-        self.features = conf.get('features', [64, 128, 256, 512])
-        
-        # Conv params
-        dropout = conf.get('dropout', 0.0)
-        activation = conf.get('activation', 'relu')
-        norm = conf.get('normalization', 'batch')
-        kernel_size = conf.get('kernel_size', 3)
-        padding = conf.get('padding', 1)
-        pooling = conf.get('pooling', 'max')
-        
-        conv_kwargs = {
-            'activation': activation,
-            'norm': norm,
-            'dropout': dropout,
-            'kernel_size': kernel_size,
-            'padding': padding
-        }
+    in_channels: int
+    out_channels: int
+    features: Sequence[int] = (64, 128, 256, 512, 1024)
+    kernel_size: int = 3
+    bilinear: bool = True
 
-        self.inc = DoubleConv(self.n_channels, self.features[0], **conv_kwargs)
-        
-        # Dynamic Down layers
-        self.downs = nn.ModuleList()
-        in_ch = self.features[0]
-        for out_ch in self.features[1:]:
-            self.downs.append(Down(in_ch, out_ch, pooling=pooling, **conv_kwargs))
-            in_ch = out_ch
-            
-        factor = 2 if self.bilinear else 1
-        
-        # Dynamic Up layers (reverse order)
-        self.ups = nn.ModuleList()
-        # Features: [64, 128, 256, 512]
-        # Down path goes: 64->128->256->512
-        # Usually typical UNet has bottleneck then Up. 
-        # But this implementation treated last down as bottleneck?
-        # Let's align with original:
-        # inc: -> 64
-        # down1: 64 -> 128
-        # down2: 128 -> 256
-        # down3: 256 -> 512
-        # down4 (bottleneck): 512 -> 1024 // factor
-        # Original code had explicit down1..down4. 
-        # To make it dynamic, we need to decide if 'features' includes the bottleneck.
-        # Let's assume 'features' are the encoder stages.
-        # Original: [64, 128, 256, 512] -> Bottle: 1024.
-        
-        # Wait, the original code had:
-        # down1: 64->128
-        # ...
-        # down3: 256->512
-        # down4: 512->1024 (bottleneck)
-        
-        # So if features=[64, 128, 256, 512], we interpret this as:
-        # Encoder output channels.
-        # The last element is NOT the bottleneck output, but the input to the bottleneck?
-        # Original:
-        # inc: n_channels -> 64
-        # down1: 64 -> 128
-        # down2: 128 -> 256
-        # down3: 256 -> 512
-        # down4: 512 -> 1024 (Bottleneck)
-        
-        # So default features list length 4 implies 4 downsampling steps.
-        # The last downsampling produces the bottleneck features.
-        
-        # To replicate orig behavior:
-        # We need a bottleneck layer that doubles channels one last time.
-        
-        self.downs = nn.ModuleList()
-        in_c = self.features[0]
-        for f in self.features[1:]:
-            self.downs.append(Down(in_c, f, pooling=pooling, **conv_kwargs))
-            in_c = f
-            
-        # Bottleneck
-        # Original: down4(512, 1024 // factor)
-        self.bottleneck = Down(self.features[-1], (self.features[-1]*2) // factor, pooling=pooling, **conv_kwargs)
-        
-        # Ups
-        # Original up1: (1024, 512 // factor)
-        # It takes bottleneck output and skip connection from last encoder layer.
-        # Bottleneck out: (features[-1]*2) // factor
-        # Skip: features[-1]
-        # Out: features[-1] // factor
-        
-        self.ups = nn.ModuleList()
-        
-        # Reversed features for decoding
-        # Skip connections come from valid features: [64, 128, 256, 512]
-        # We iterate backwards.
-        
-        # Start with bottleneck output channels
-        current_ch = (self.features[-1]*2) // factor
-        
-        for i, f in enumerate(reversed(self.features)):
-            # Up(in_channels, out_channels)
-            # in_channels must match the concatenation of upsampled input + skip connection.
-            # Upsample doesn't change channels if mode is bilinear (usually). 
-            # But the Up module handles the logic.
-            # If bilinear=True, Up module expects in_channels to be the SUM of skip + upsampled.
-            
-            # Input from below: current_ch
-            # Input from skip: f
-            
-            # However, the Up class implementation of `DoubleConv` uses `in_channels` to define the first conv input.
-            # The `Up.forward` concatenates `x2` (skip) and `x1` (upsampled).
-            # So channel count is `skip.channels + upsampled.channels`.
-            # Upsampled channels = current_ch.
-            # Skip channels = f.
-            
-            in_ch_total = current_ch + f
-            out_ch = f // factor
-            
-            # Special handling for the last block to match original dimensions if needed?
-            # Original: up4 goes to 64. features[0] is 64. 64//2 = 32?
-            # Original code: 
-            # up4 = Up(128, 64) -> in=128 (64+64), out=64.
-            # features[0]=64. factor=1 (original default bilinear=True but factor logic applied differently?)
-            # In orig: factor=2 if bilinear.
-            # up4: Up(128, 64, bilinear). conv input 128. out 64.
-            # My logic: f=64. current_ch=64 (from prev UP). in_ch_total = 64+64=128. 
-            # out_ch = 64 // 2 = 32.
-            # THIS IS WRONG. The output of the Up block should effectively restore the channel count of the skip layer (or close to it)
-            # to prepare for the next one, OR match features[0] at the end.
-            
-            # Original up4 output is 64. features[0] is 64.
-            # So out_ch should be `f`?
-            # If `out_ch = f`:
-            # Up(128, 64). DoubleConv(128, 64, mid=64). 
-            # This matches original.
-            
-            # But wait, factor only affecting bottleneck? 
-            # Original:
-            # down4(512, 1024//2 = 512).  <-- Bottleneck out is 512.
-            # up1(1024, 256). Input to up1 is cat(512, 512) = 1024. Out 256.
-            # My logical bottleneck out: 512.
-            # My f (skip): 512.
-            # in_total: 1024.
-            # out_ch: f // 2 = 256.
-            # Next iter: current=256. f=256. in=512. out=128.
-            # ...
-            # Last iter: current=?. f=64. in=?. out=32?
-            
-            # Original OutConv takes 64.
-            
-            # Let's trust 'f // factor' for inner layers, but maybe we shouldn't divide by factor for the output channels?
-            # Actually, `Up` class divides `in_channels // 2` for `mid_channels`.
-            
-            # If I use `out_ch = f`, then:
-            # Iter 1: in=1024. out=512.
-            # Iter 2: in=512+256=768? No.
-            # If Out=512. Next current=512. Skip=256. Sum=768.
-            # This diverges from powers of 2.
-            
-            # The issue is `factor`.
-            # If bilinear, we lose channels via interpolation or just don't increase them?
-            # If bilinear, we want to halve channels at each step to eventually reach features[0].
-            
-            # Let's look at standard UNet sizes:
-            # 64->128->256->512->1024 (Bot)
-            # Up: 1024->512 (cat 512+512).
-            # Up: 512->256 (cat 256+256).
-            # Up: 256->128 (cat 128+128).
-            # Up: 128->64 (cat 64+64).
-            
-            # So `out_ch` should be `f`. WITHOUT factor division?
-            # If bilinear, factor=2.
-            # Bottleneck out = 512. (1024//2).
-            # Up1 input: 512 (bot) + 512 (skip) = 1024.
-            # Up1 output target: 256. (So 512 // 2).
-            
-            # So `out_ch` should be `f // factor`?
-            # 512 // 2 = 256. Correct.
-            # Next: current=256. Skip=256.
-            # Up2 input: 256+256 = 512.
-            # Up2 output: 256 // 2 = 128. Correct.
-            
-            # Last one: f=64.
-            # current=64 (from previous 128//2).
-            # Skip=64.
-            # Input: 128.
-            # Output: 64 // 2 = 32?
-            # But we want 64 for OutConv.
-            
-            # The original code sets `up4 = Up(128, 64)`.
-            # Note 'factor' was NOT used in the output channel calc for up4 in original code!
-            # `self.up4 = Up(128, 64, bilinear)`
-            
-            # So for the very last layer (corresponding to features[0]), we should probably NOT divide by factor, or explicitly target features[0].
-            
-            if i == len(self.features) - 1:
-                out_ch = f
-            else:
-                out_ch = f // factor
-            
-            self.ups.append(Up(in_ch_total, out_ch, self.bilinear, **conv_kwargs))
-            current_ch = out_ch
-            
-        self.outc = OutConv(current_ch, self.n_classes)
 
-    def forward(self, x):
-        x = self.inc(x)
-        skips = [x]
-        
-        for down in self.downs:
-            x = down(x)
+class UNet2D(nn.Module):
+    """
+    A configurable 2D U-Net with encoder/decoder and skip connections.
+
+    Input shape:  (B, Cin, H, W)
+    Output shape: (B, Cout, H, W)
+    """
+
+    def __init__(self, cfg: UNetConfig) -> None:
+        super().__init__()
+        self.cfg = cfg
+        self._validate_cfg()
+
+        features = list(cfg.features)
+
+        # When using bilinear upsampling, a common adjustment is to reduce the bottleneck.
+        # This keeps parameter count closer to the transposed-conv variant.
+        if cfg.bilinear:
+            features[-1] = features[-1] // 2
+
+        self.stem = DoubleConv(cfg.in_channels, features[0], kernel_size=cfg.kernel_size)
+
+        # Encoder
+        self.down: nn.ModuleList[nn.Module] = nn.ModuleList()
+        for i in range(len(features) - 1):
+            self.down.append(DownBlock(features[i], features[i + 1], kernel_size=cfg.kernel_size))
+
+        # Decoder
+        self.up: nn.ModuleList[nn.Module] = nn.ModuleList()
+        for i in range(len(features) - 1, 0, -1):
+            self.up.append(
+                UpBlock(
+                    in_channels=features[i],
+                    skip_channels=features[i - 1],
+                    out_channels=features[i - 1],
+                    kernel_size=cfg.kernel_size,
+                    bilinear=cfg.bilinear,
+                )
+            )
+
+        self.head = nn.Conv2d(features[0], cfg.out_channels, kernel_size=1)
+
+    def _validate_cfg(self) -> None:
+        if self.cfg.in_channels <= 0:
+            raise ValueError("in_channels must be > 0.")
+        if self.cfg.out_channels <= 0:
+            raise ValueError("out_channels must be > 0.")
+        if len(self.cfg.features) < 2:
+            raise ValueError("features must have length >= 2.")
+        if any(f <= 0 for f in self.cfg.features):
+            raise ValueError("All feature sizes must be > 0.")
+        if self.cfg.kernel_size <= 0 or self.cfg.kernel_size % 2 == 0:
+            raise ValueError("kernel_size must be a positive odd integer.")
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        skips: List[torch.Tensor] = []
+
+        x = self.stem(x)
+        skips.append(x)
+
+        for down_block in self.down:
+            x = down_block(x)
             skips.append(x)
-            
-        x = self.bottleneck(x)
-        
-        # skips has [inc_out, down1_out, ..., downN_out]
-        # bottleneck uses downN_out.
-        # Ups need to consume skips in reverse.
-        
-        for i, up in enumerate(self.ups):
-            skip = skips[-(i+1)]
-            x = up(x, skip)
-            
-        logits = self.outc(x)
-        return logits
+
+        # The last element is the bottleneck output; do not use it as a skip
+        skips = skips[:-1]
+
+        for i, up_block in enumerate(self.up):
+            skip = skips[-(i + 1)]
+            x = up_block(x, skip)
+
+        return self.head(x)
+
+
+# -----------------------------
+# Forecasting wrappers
+# -----------------------------
+@dataclass(frozen=True)
+class MultiHorizonConfig:
+    """
+    Direct multi-horizon forecasting using a U-Net over a channel-stacked temporal window.
+
+    The model consumes a sequence (Tin) and predicts all future frames (Tout) in one forward pass.
+
+    Input:  (B, Tin, Cin, H, W)
+    Output: (B, Tout, Cout, H, W)
+    """
+
+    input_timesteps: int = 12
+    input_channels: int = 1
+    output_timesteps: int = 6
+    output_channels: int = 1
+    features: Sequence[int] = (64, 128, 256, 512, 1024)
+    kernel_size: int = 3
+    bilinear: bool = True
+    nonnegativity: str = "relu"  # "relu" | "softplus" | "none"
+
+
+class UNetMultiHorizon(nn.Module):
+    """
+    Direct (multi-horizon) precipitation forecaster.
+
+    Strategy
+    --------
+    - Stack the temporal dimension into channels: Tin * Cin channels.
+    - Use a 2D U-Net to map to Tout * Cout channels.
+    - Reshape back to (B, Tout, Cout, H, W).
+
+    Notes
+    -----
+    Enforcing non-negativity:
+      - "relu" is simple and fast, but can create dead zones.
+      - "softplus" is smooth and strictly positive.
+      - "none" disables the constraint.
+    """
+
+    def __init__(self, cfg: MultiHorizonConfig) -> None:
+        super().__init__()
+        self.cfg = cfg
+        self._validate_cfg()
+
+        unet_cfg = UNetConfig(
+            in_channels=cfg.input_timesteps * cfg.input_channels,
+            out_channels=cfg.output_timesteps * cfg.output_channels,
+            features=cfg.features,
+            kernel_size=cfg.kernel_size,
+            bilinear=cfg.bilinear,
+        )
+        self.unet = UNet2D(unet_cfg)
+
+    def _validate_cfg(self) -> None:
+        if self.cfg.input_timesteps <= 0:
+            raise ValueError("input_timesteps must be > 0.")
+        if self.cfg.output_timesteps <= 0:
+            raise ValueError("output_timesteps must be > 0.")
+        if self.cfg.input_channels <= 0:
+            raise ValueError("input_channels must be > 0.")
+        if self.cfg.output_channels <= 0:
+            raise ValueError("output_channels must be > 0.")
+        if self.cfg.nonnegativity not in {"relu", "softplus", "none"}:
+            raise ValueError("nonnegativity must be one of: {'relu', 'softplus', 'none'}.")
+
+    def _apply_nonnegativity(self, x: torch.Tensor) -> torch.Tensor:
+        if self.cfg.nonnegativity == "relu":
+            return F.relu(x)
+        if self.cfg.nonnegativity == "softplus":
+            return F.softplus(x)
+        return x
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """
+        Parameters
+        ----------
+        x:
+            Input tensor with shape (B, Tin, Cin, H, W).
+
+        Returns
+        -------
+        torch.Tensor
+            Prediction tensor with shape (B, Tout, Cout, H, W).
+        """
+        if x.dim() != 5:
+            raise ValueError(f"Expected a 5D tensor (B, Tin, Cin, H, W). Got shape: {tuple(x.shape)}")
+
+        b, tin, cin, h, w = x.shape
+        if tin != self.cfg.input_timesteps or cin != self.cfg.input_channels:
+            raise ValueError(
+                f"Expected Tin={self.cfg.input_timesteps}, Cin={self.cfg.input_channels}, "
+                f"but got Tin={tin}, Cin={cin}."
+            )
+
+        x_flat = x.reshape(b, tin * cin, h, w)
+        y_flat = self.unet(x_flat)
+        y = y_flat.reshape(b, self.cfg.output_timesteps, self.cfg.output_channels, h, w)
+        return self._apply_nonnegativity(y)
+
+
+@dataclass(frozen=True)
+class AutoRegressiveConfig:
+    """
+    Autoregressive multi-step forecasting with a single-step U-Net.
+
+    Input:  (B, Tin, Cin, H, W)
+    Output: (B, Tout, Cin, H, W)
+
+    Notes
+    -----
+    - This version predicts one frame at a time and feeds it back into the context window.
+    - Output channels are fixed to input_channels for consistency (typical in autoregression).
+    """
+
+    input_timesteps: int = 12
+    input_channels: int = 1
+    output_timesteps: int = 6
+    features: Sequence[int] = (64, 128, 256, 512, 1024)
+    kernel_size: int = 3
+    bilinear: bool = True
+    nonnegativity: str = "relu"  # "relu" | "softplus" | "none"
+
+
+class UNetAutoRegressive(nn.Module):
+    """
+    Autoregressive precipitation forecaster (one-step-ahead repeated Tout times).
+
+    The model uses a single-step U-Net that predicts exactly one future frame per iteration.
+    """
+
+    def __init__(self, cfg: AutoRegressiveConfig) -> None:
+        super().__init__()
+        self.cfg = cfg
+        self._validate_cfg()
+
+        unet_cfg = UNetConfig(
+            in_channels=cfg.input_timesteps * cfg.input_channels,
+            out_channels=cfg.input_channels,  # one step: predict Cin channels
+            features=cfg.features,
+            kernel_size=cfg.kernel_size,
+            bilinear=cfg.bilinear,
+        )
+        self.unet = UNet2D(unet_cfg)
+
+    def _validate_cfg(self) -> None:
+        if self.cfg.input_timesteps <= 0:
+            raise ValueError("input_timesteps must be > 0.")
+        if self.cfg.output_timesteps <= 0:
+            raise ValueError("output_timesteps must be > 0.")
+        if self.cfg.input_channels <= 0:
+            raise ValueError("input_channels must be > 0.")
+        if self.cfg.nonnegativity not in {"relu", "softplus", "none"}:
+            raise ValueError("nonnegativity must be one of: {'relu', 'softplus', 'none'}.")
+
+    def _apply_nonnegativity(self, x: torch.Tensor) -> torch.Tensor:
+        if self.cfg.nonnegativity == "relu":
+            return F.relu(x)
+        if self.cfg.nonnegativity == "softplus":
+            return F.softplus(x)
+        return x
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """
+        Parameters
+        ----------
+        x:
+            Input tensor with shape (B, Tin, Cin, H, W).
+
+        Returns
+        -------
+        torch.Tensor
+            Autoregressive predictions with shape (B, Tout, Cin, H, W).
+        """
+        if x.dim() != 5:
+            raise ValueError(f"Expected a 5D tensor (B, Tin, Cin, H, W). Got shape: {tuple(x.shape)}")
+
+        b, tin, cin, h, w = x.shape
+        if tin != self.cfg.input_timesteps or cin != self.cfg.input_channels:
+            raise ValueError(
+                f"Expected Tin={self.cfg.input_timesteps}, Cin={self.cfg.input_channels}, "
+                f"but got Tin={tin}, Cin={cin}."
+            )
+
+        context = x  # (B, Tin, Cin, H, W)
+        preds: List[torch.Tensor] = []
+
+        for _ in range(self.cfg.output_timesteps):
+            context_flat = context.reshape(b, tin * cin, h, w)
+            next_frame = self.unet(context_flat)  # (B, Cin, H, W)
+            next_frame = next_frame.unsqueeze(1)  # (B, 1, Cin, H, W)
+            preds.append(next_frame)
+
+            # slide window: drop oldest, append latest prediction
+            context = torch.cat([context[:, 1:, ...], next_frame], dim=1)
+
+        y = torch.cat(preds, dim=1)  # (B, Tout, Cin, H, W)
+        return self._apply_nonnegativity(y)
+
+
+# -----------------------------
+# Smoke test / example usage
+# -----------------------------
+def _smoke_test(
+    device: torch.device,
+    input_shape: Tuple[int, int, int, int, int] = (2, 12, 1, 300, 360),
+) -> None:
+    b, tin, cin, h, w = input_shape
+    x = torch.randn(*input_shape, device=device)
+
+    direct_cfg = MultiHorizonConfig(
+        input_timesteps=tin,
+        input_channels=cin,
+        output_timesteps=6,
+        output_channels=1,
+        features=(64, 128, 256, 512, 1024),
+        kernel_size=3,
+        bilinear=True,
+        nonnegativity="relu",
+    )
+    model_direct = UNetMultiHorizon(direct_cfg).to(device)
+
+    ar_cfg = AutoRegressiveConfig(
+        input_timesteps=tin,
+        input_channels=cin,
+        output_timesteps=6,
+        features=(64, 128, 256, 512, 1024),
+        kernel_size=3,
+        bilinear=True,
+        nonnegativity="relu",
+    )
+    model_ar = UNetAutoRegressive(ar_cfg).to(device)
+
+    with torch.no_grad():
+        y_direct = model_direct(x)
+        y_ar = model_ar(x)
+
+    logger.info("Direct model params: %s", f"{count_trainable_parameters(model_direct):,}")
+    logger.info("AutoReg model params: %s", f"{count_trainable_parameters(model_ar):,}")
+    logger.info("Input shape:  %s", tuple(x.shape))
+    logger.info("Direct out:   %s", tuple(y_direct.shape))
+    logger.info("AutoReg out:  %s", tuple(y_ar.shape))
+
+
+if __name__ == "__main__":
+    _configure_logging(logging.INFO)
+
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    logger.info("Device: %s", device)
+
+    _smoke_test(device=device)
