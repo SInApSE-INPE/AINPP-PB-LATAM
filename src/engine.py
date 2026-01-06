@@ -7,6 +7,7 @@ logger = logging.getLogger(__name__)
 
 import sys
 from pathlib import Path
+import torch.distributed as dist
 
 FILE = Path(__file__).resolve()
 ROOT = FILE.parents[1]
@@ -26,17 +27,8 @@ def run_training(
         checkpoint,
         train_sampler=None,
 ):
-    """
-    Args:
-        training_cfg: A parte 'training' do DictConfig do Hydra
-    """
-    
-    # --- Configura Callbacks ---
-    
-    # 1. Setup Early Stopping (que também salva o 'best_model.pt')
-    
+    # Setup Early Stopping (apenas referência, a lógica muda abaixo)
     best_model_path = f"{checkpoint.dir}/best_model.pt"
-    
     early_stopper = EarlyStopping(
         patience=early_stopping.patience,
         delta=early_stopping.delta,
@@ -44,7 +36,8 @@ def run_training(
         enabled=early_stopping.enabled
     )
 
-    # Loop de Treino
+    print("Running for {} epochs".format(epochs))
+    
     for epoch in range(1, epochs + 1):
         if train_sampler is not None:
             train_sampler.set_epoch(epoch)
@@ -52,7 +45,9 @@ def run_training(
         model.train()
         train_loss = 0.0
         
-        pbar = tqdm(train_loader, desc=f"Epoch {epoch}/{epochs}", leave=True)
+        # Dica visual: Desabilitar barra de progresso nos workers para não duplicar log
+        pbar = tqdm(train_loader, desc=f"Epoch {epoch}/{epochs}", leave=True, disable=not is_main_process())
+        
         for x, y in pbar:
             x, y = x.to(device), y.to(device)
             
@@ -63,29 +58,44 @@ def run_training(
             optimizer.step()
             
             train_loss += loss.item()
-            pbar.set_postfix({'loss': loss.item()})
+            if is_main_process():
+                pbar.set_postfix({'loss': loss.item()})
         
         avg_train_loss = train_loss / len(train_loader)
         
         # Validação
         avg_val_loss = run_validation(model, val_loader, criterion, device)
         
+        # --- LÓGICA DE PARADA SINCRONIZADA ---
+        
+        # 1. Criamos um tensor flag: 0 = Continuar, 1 = Parar
+        stop_signal = torch.tensor(0, device=device)
+
         if is_main_process():
             logger.info(f"Epoch {epoch} | Train: {avg_train_loss:.5f} | Val: {avg_val_loss:.5f}")
 
-            # 1. Checkpoint Periódico (Intervalo fixo)
+            # Checkpoint Periódico
             if checkpoint.enabled and (epoch % checkpoint.interval == 0):
                 save_epoch_checkpoint(model, epoch, checkpoint.dir)
 
-            # 2. Early Stopping & Best Model Save
-            # O early_stopper verifica internamente se deve salvar o melhor modelo
+            # Early Stopping
             early_stopper(avg_val_loss, model)
-        
+            
             if early_stopper.early_stop:
-                logger.info("Early stopping ativado. Parando treino.")
-            break
+                logger.info("Early stopping ativado no Mestre. Iniciando parada geral.")
+                stop_signal = torch.tensor(1, device=device) # Muda flag para 1
 
-    logger.info("Treino finalizado.")
+        # 2. SINCRONIZAÇÃO (O Pulo do Gato)
+        # Se estivermos em DDP, o Rank 0 avisa todo mundo qual é o valor de stop_signal
+        if dist.is_initialized():
+            dist.broadcast(stop_signal, src=0)
+
+        # 3. Todos os processos verificam a flag Sincronizada
+        if stop_signal.item() == 1:
+            break  # Agora TODOS quebram o loop juntos
+
+    if is_main_process():
+        logger.info("Treino finalizado.")
 
 def run_validation(model, loader, criterion, device):
     model.eval()

@@ -7,14 +7,31 @@ from hydra.utils import instantiate
 import torch
 from torch.utils.data import DataLoader
 from torch.utils.data.distributed import DistributedSampler
+import os
+import multiprocessing
 
-# Adiciona src ao path (como discutido antes)
+
 FILE = Path(__file__).resolve()
 ROOT = FILE.parents[1]
 if str(ROOT) not in sys.path: sys.path.append(str(ROOT))
 
 from src.distributed import setup_distributed, cleanup_distributed, is_main_process
 from src.engine import run_training
+
+if "OMP_NUM_THREADS" not in os.environ:
+    # Descobre quantos cores tem na máquina
+    num_cores = multiprocessing.cpu_count()
+    
+    # Descobre quantas GPUs vamos usar (se for DDP via torchrun)
+    world_size = int(os.environ.get("WORLD_SIZE", 1))
+    
+    # Divide cores por GPUs (com uma folga de segurança)
+    threads_per_proc = max(1, (num_cores // world_size) - 1)
+    
+    os.environ["OMP_NUM_THREADS"] = str(threads_per_proc)
+    os.environ["MKL_NUM_THREADS"] = str(threads_per_proc)
+    
+    print(f"[Auto-Tuning] OMP_NUM_THREADS definido para: {threads_per_proc}")
 
 @hydra.main(version_base=None, config_path="../conf", config_name="config")
 def main(cfg: DictConfig):
@@ -76,20 +93,24 @@ def main(cfg: DictConfig):
 
     # 4. EXECUÇÃO -> Chama o módulo
     print("Iniciando Engine de Treino...")
-    run_training(
-        model=model,
-        train_loader=train_loader,
-        val_loader=val_loader,
-        optimizer=optimizer,
-        device=device,
-        epochs=cfg.training.epochs,
-        criterion=criterion,
-        early_stopping=cfg.training.early_stopping,
-        checkpoint=cfg.training.checkpoint
-    )
-
-    # 5. Cleanup DDP
-    cleanup_distributed()
+    try:
+        run_training(
+            model=model,
+            train_loader=train_loader,
+            val_loader=val_loader,
+            optimizer=optimizer,
+            device=device,
+            epochs=cfg.training.epochs,
+            criterion=criterion,
+            early_stopping=cfg.training.early_stopping,
+            checkpoint=cfg.training.checkpoint
+        )
+    except Exception as e:
+        if is_main_process():
+            print(f"Erro durante o treino: {e}")
+        raise e
+    finally:
+        cleanup_distributed()
 
 if __name__ == "__main__":
     main()
