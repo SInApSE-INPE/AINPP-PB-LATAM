@@ -1,0 +1,5 @@
+_target_: src.models.resnet50.forecaster.ResNet50MultiHorizon
+
+input_timesteps: ${input_timesteps}
+output_timesteps: ${output_timesteps}
+
