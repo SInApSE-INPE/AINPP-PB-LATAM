@@ -1,0 +1,5 @@
+_target_: src.models.inceptionv4.forecaster.InceptionV4MultiHorizon
+
+input_timesteps: ${input_timesteps}
+output_timesteps: ${output_timesteps}
+
