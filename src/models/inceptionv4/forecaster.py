@@ -5,10 +5,13 @@ import torch.nn as nn
 import timm
 from src.layers.blocks import Up
 
+import logging
+logger = logging.getLogger(__name__)
 
 class InceptionV4MultiHorizon(nn.Module):
     def __init__(self, input_timesteps=12, output_timesteps=6, pretrained=True):
         super().__init__()
+        logger.info("Initializing InceptionV4MultiHorizon forecaster.")
         self.encoder = timm.create_model(
             'inception_v4', 
             pretrained=pretrained, 

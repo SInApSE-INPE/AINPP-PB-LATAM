@@ -5,6 +5,9 @@ import torch.nn as nn
 import timm
 from src.models.xception.blocks import Up
 
+import logging
+logger = logging.getLogger(__name__)
+
 
 class XceptionMultiHorizon(nn.Module):
     def __init__(self, input_timesteps=12, output_timesteps=6, pretrained=True):
@@ -15,6 +18,7 @@ class XceptionMultiHorizon(nn.Module):
         # in_chans: timm ajusta a primeira camada automaticamente (12 canais)
         # features_only: retorna uma lista de features [f0, f1, f2, f3, f4]
         # out_indices: garante que pegamos as saídas dos 5 estágios (strides 2, 4, 8, 16, 32)
+        logger.info("Initializing XceptionMultiHorizon forecaster.")
         self.encoder = timm.create_model(
             'xception', 
             pretrained=pretrained, 

@@ -31,6 +31,7 @@ class ConvLSTMMultiHorizon(nn.Module):
         output_timesteps: int =6,
     ) -> None:
         super(ConvLSTMMultiHorizon, self).__init__()
+        logger.info("Initializing ConvLSTMMultiHorizon forecaster.")
         
         self.input_channels = input_channels
         self.output_timesteps = output_timesteps

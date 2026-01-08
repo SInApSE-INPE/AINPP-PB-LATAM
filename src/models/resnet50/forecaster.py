@@ -4,11 +4,15 @@ import torch
 import torch.nn as nn
 import timm
 from src.layers.blocks import Up
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class ResNet50MultiHorizon(nn.Module):
     def __init__(self, input_timesteps=12, output_timesteps=6, pretrained=True):
         super().__init__()
+        logger.info("Initializing ResNet50MultiHorizon forecaster.")
         self.encoder = timm.create_model(
             'resnet50d', 
             pretrained=pretrained, 
