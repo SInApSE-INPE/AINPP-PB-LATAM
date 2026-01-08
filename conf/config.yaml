@@ -9,7 +9,7 @@ output_timesteps: 6
 defaults:
   - _self_
   - model: unet/direct
-  - dataset: gsmap
+  - dataset: ainpp_pb_latam_dataset
   - loss: mse_ssim
 
 system:
@@ -20,7 +20,7 @@ system:
 training:
   batch_size: 16
   epochs: 100
-  learning_rate: 0.001
+  lr: 0.001
   
   checkpoint:
     enabled: true

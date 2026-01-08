@@ -1,0 +1,76 @@
+# ==============================================================================
+# GSMaP Dataset Configuration
+# ==============================================================================
+# This configuration defines the blueprint for the AINPPPBLATAMDataset and 
+# its corresponding DataLoaders for training and validation.
+# ==============================================================================
+
+dataset:
+  # Python class to instantiate
+  _target_: src.datasets.gsmap.AINPPPBLATAMDataset
+  
+  # Path to the Zarr store
+  zarr_path: "/prj/ideeps/adriano.almeida/data/ainpp/legacy/AINPP-PB-LATAM.zarr"
+  
+  # --------------------------------------------------------------------------
+  # Global Variables (Interpolation)
+  # --------------------------------------------------------------------------
+  # These values are interpolated from the root config.yaml to ensure 
+  # consistency between the Model architecture and the Dataset.
+  input_timesteps: ${input_timesteps}
+  output_timesteps: ${output_timesteps}
+  
+  # --------------------------------------------------------------------------
+  # Spatial Configuration (Rectangular Patches)
+  # --------------------------------------------------------------------------
+  # Define the spatial dimensions of the input/target patches.
+  # If using square patches, set both height and width to the same value.
+  patch_height: null
+  patch_width: null
+  
+  # Spatial Stride configuration.
+  # - If null: defaults to patch_height/width (Non-overlapping patches).
+  # - If < patch_size: creates Overlapping patches (e.g., for sliding window).
+  patch_stride_h: null 
+  patch_stride_w: null
+  
+  # --------------------------------------------------------------------------
+  # Zarr & Data Options
+  # --------------------------------------------------------------------------
+  # Use consolidated metadata for faster opening of Zarr stores
+  consolidated: true
+  # Target tensor data type
+  dtype: "float32"
+
+# ==============================================================================
+# DataLoader Configuration
+# ==============================================================================
+
+train_loader:
+  batch_size: 16
+  num_workers: 4
+  prefetch_factor: 2   # Number of batches loaded in advance by each worker
+  pin_memory: true     # Faster transfer to CUDA device
+
+val_loader:
+  batch_size: 16
+  num_workers: 4
+  pin_memory: true
+
+# ==============================================================================
+# Split Overrides
+# ==============================================================================
+# These parameters are injected into the dataset __init__ based on the split.
+
+overrides:
+  train:
+    group: "train"
+    stride: 1             # Temporal stride between samples (dense sampling)
+    steps_per_epoch: 500  # Number of batches per epoch (Random Sampling)
+
+  validation:
+    group: "validation"
+    stride: 6             # Temporal stride (sparser sampling for eval)
+    # Set to 'null' to scan the entire dataset deterministicallly.
+    # Set to an integer (e.g., 500) to limit validation time.
+    steps_per_epoch: 500
