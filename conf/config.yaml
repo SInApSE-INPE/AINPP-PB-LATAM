@@ -9,8 +9,8 @@ output_timesteps: 6
 defaults:
   - _self_
   - model: unet/direct
-  - dataset: ainpp_pb_latam_dataset
-  - loss: mse_ssim
+  - dataset: gsmap
+  - loss: hybrid_mse_ssim
 
 system:
   num_workers: 4

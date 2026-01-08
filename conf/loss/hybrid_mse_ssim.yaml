@@ -1,0 +1,13 @@
+_target_: src.losses.HybridLoss
+weights: [1.0, 0.2] # 1.0 para o MSE, 0.2 para o SSIM
+
+losses:
+  # Loss 1: Weighted MSE
+  - _target_: src.losses.WeightedMSELoss
+    alpha: 2.0
+    threshold: 0.0
+
+  # Loss 2: SSIM
+  - _target_: src.losses.SSIMLoss
+    window_size: 11
+    in_channels: 1

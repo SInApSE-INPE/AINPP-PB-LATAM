@@ -1,0 +1,3 @@
+_target_: src.losses.DiceLoss
+threshold: 0.5
+smooth: 1e-6

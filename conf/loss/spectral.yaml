@@ -1,0 +1,3 @@
+_target_: src.losses.SpectralLoss
+alpha: 1.0
+beta: 1.0

@@ -1,8 +1,0 @@
-_target_: src.losses.HybridLoss
-weights: [1.0, 0.05]
-
-losses:
-  - _target_: src.loss.WeightedMAELoss
-  
-  - _target_: src.loss.PerceptualLoss
-    layer_ids: [3, 8, 15] # Customizando camadas da VGG

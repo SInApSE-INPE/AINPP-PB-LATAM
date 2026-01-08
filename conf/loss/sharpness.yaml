@@ -1,6 +1,0 @@
-_target_: src.losses.SharpnessLoss
-w_mse: 1.0 # Weight for MSE component
-w_l1: 1.0 # Weight for L1 component
-w_ssim: 1.0 # Weight for SSIM component
-threshold: 0.5 # Threshold for sharpness detection
-high_weight: 5.0 # Weight for high sharpness regions
