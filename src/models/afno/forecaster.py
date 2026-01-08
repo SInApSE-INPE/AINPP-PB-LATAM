@@ -148,6 +148,7 @@ class AFNO2D(nn.Module):
         x = self.head(x)          # [B, Tout*Cout, H, W]
 
         # Reshape back to 5D: [B, Tout, Cout, H, W]
+        # x = x.unsqueeze(2)
         x = x.reshape(B, self.output_timesteps, self.output_channels, H, W)
         
         return x
