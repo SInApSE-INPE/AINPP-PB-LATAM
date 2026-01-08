@@ -1,0 +1,5 @@
+_target_: src.models.afno.forecaster.AFNO2D
+
+input_timesteps: ${input_timesteps}
+output_timesteps: ${output_timesteps}
+

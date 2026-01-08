@@ -378,6 +378,7 @@ class SpectralLoss(nn.Module):
     def forward(self, input: torch.Tensor, target: torch.Tensor) -> torch.Tensor:
         # Flatten batch and time dimensions for 2D FFT
         # Input: (B, T, C, H, W) -> (N, H, W) assuming C=1
+        
         if input.dim() == 5:
             b, t, c, h, w = input.shape
             input = input.reshape(-1, h, w)
