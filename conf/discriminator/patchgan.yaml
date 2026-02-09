@@ -1,0 +1,10 @@
+# conf/discriminator/patchgan.yaml
+_target_: src.models.gan.discriminator.PatchDiscriminator3D
+
+# Canais de entrada do Discriminador = (Canais de Histórico + Canais de Futuro)
+# Exemplo: Se entra 1 canal de chuva (histórico) e sai 1 canal (previsão), input_channels deve ser 2.
+input_channels: 1
+
+ndf: 64            # Número de filtros na primeira camada (base)
+n_layers: 1        # Profundidade da rede
+norm_type: "instance"

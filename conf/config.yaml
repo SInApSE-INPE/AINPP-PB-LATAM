@@ -9,6 +9,8 @@ output_timesteps: 6
 defaults:
   - _self_
   - model: unet/direct
+  - discriminator: patchgan
+  - training: gan
   - dataset: gsmap
   - loss: hybrid_mse_ssim
 
@@ -16,23 +18,6 @@ system:
   num_workers: 4
   pin_memory: true
   sync_bn: false
-
-training:
-  batch_size: 16
-  epochs: 100
-  lr: 0.001
-  
-  checkpoint:
-    enabled: true
-    dir: outputs/${now:%Y-%m-%d}/${now:%H-%M-%S}/early_stopping
-    interval: 5
-    save_best: true
-
-  early_stopping:
-    enabled: true
-    patience: 10
-    delta: 0.001
-    mode: 'min'
 
 hydra:
   run:

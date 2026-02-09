@@ -1,0 +1,9 @@
+# conf/model/graphcast.yaml
+_target_: src.models.graph.GraphCastNet
+input_timesteps: ${dataset.dataset.input_timesteps}
+output_timesteps: ${dataset.dataset.output_timesteps}
+grid_height: 880
+grid_width: 970
+latent_nodes: 512    # Tamanho do grafo (ajuste conforme GPU)
+embed_dim: 256
+processor_layers: 4

@@ -54,9 +54,10 @@ class EarlyStopping:
         self.val_loss_min = val_loss
 
 
-def save_epoch_checkpoint(model, epoch, save_dir):
+def save_epoch_checkpoint(model, epoch, save_dir, **kwargs):
     """Salva checkpoint periódico."""
-    path = Path(save_dir) / f"model_epoch_{epoch:03d}.pt"
+    prefix = kwargs.get("prefix", "checkpoint")
+    path = Path(save_dir) / f"{prefix}_model_epoch_{epoch:03d}.pt"
     path.parent.mkdir(parents=True, exist_ok=True)
     torch.save(model.state_dict(), path)
     logger.info(f"Checkpoint periódico salvo: {path}")
