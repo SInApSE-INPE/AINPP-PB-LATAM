@@ -1,7 +1,7 @@
 __pycache__/
 *.pyc
 *.pyo
-*egg-info/
+src/ainpp.egg-info/
 data/
 mlruns/
 outputs/
