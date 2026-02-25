@@ -9,11 +9,11 @@ FILE = pathlib.Path(__file__).resolve()
 ROOT = FILE.parents[1]  # Diretório raiz do projeto
 if str(ROOT) not in sys.path:
     sys.path.append(str(ROOT))
-from src.datasets.gsmap import AINPPPBLATAMDataset
+from ainpp.datasets.gsmap import AINPPPBLATAMDataset
 # Importe a classe do seu modelo específico aqui. Exemplo:
-from src.models.unet.forecaster import UNetMultiHorizon 
-# from src.models.afno.net import AFNO2D 
-# from src.models.gan.generator import Generator
+from ainpp.models.unet.forecaster import UNetMultiHorizon 
+# from ainpp.models.afno.net import AFNO2D 
+# from ainpp.models.gan.generator import Generator
 
 def load_model(model_class, checkpoint_path, device, model_args={}):
     """

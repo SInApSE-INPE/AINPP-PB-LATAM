@@ -1,5 +1,5 @@
 # conf/model/graphcast.yaml
-_target_: src.models.graph.GraphCastNet
+_target_: ainpp.models.graph.GraphCastNet
 input_timesteps: ${dataset.dataset.input_timesteps}
 output_timesteps: ${dataset.dataset.output_timesteps}
 grid_height: 880

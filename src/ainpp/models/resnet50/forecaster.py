@@ -3,7 +3,7 @@ from __future__ import annotations
 import torch
 import torch.nn as nn
 import timm
-from src.layers.blocks import Up
+from ainpp.layers.blocks import Up
 import logging
 
 logger = logging.getLogger(__name__)

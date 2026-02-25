@@ -5,8 +5,8 @@ import os
 import shutil
 import json
 import numpy as np
-from src.visualization.runner import VisualizationRunner
-from src.visualization.plot_metrics import plot_reliability_diagram, plot_roc_curve
+from ainpp.visualization.runner import VisualizationRunner
+from ainpp.visualization.plot_metrics import plot_reliability_diagram, plot_roc_curve
 
 
 test_dir = "./tests/test_output"

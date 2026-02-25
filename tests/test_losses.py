@@ -1,7 +1,7 @@
 import torch
 import pytest
 import shutil
-from src.losses import get_loss, WeightedMSELoss, WeightedMAELoss, BalancedMSELoss, SSIMLoss, MS_SSIMLoss, PerceptualLoss, FocalLoss, CRPSLoss, HybridLoss
+from ainpp.losses import get_loss, WeightedMSELoss, WeightedMAELoss, BalancedMSELoss, SSIMLoss, MS_SSIMLoss, PerceptualLoss, FocalLoss, CRPSLoss, HybridLoss
 from omegaconf import OmegaConf
 
 @pytest.fixture

@@ -1,3 +1,3 @@
-_target_: src.losses.DiceLoss
+_target_: ainpp.losses.DiceLoss
 threshold: 0.5
 smooth: 1e-6

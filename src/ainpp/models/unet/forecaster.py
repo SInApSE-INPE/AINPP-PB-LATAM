@@ -16,7 +16,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 # Assumes UNet2D is defined in the backbone module
-from src.models.unet.backbone import UNet2D
+from ainpp.models.unet.backbone import UNet2D
 
 logger = logging.getLogger(__name__)
 

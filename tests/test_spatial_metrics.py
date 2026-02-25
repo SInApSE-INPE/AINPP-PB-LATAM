@@ -3,7 +3,7 @@ import pytest
 import numpy as np
 import xarray as xr
 import pandas as pd
-from src.evaluation.spatial_metrics import (
+from ainpp.evaluation.spatial_metrics import (
     km_to_window_cells,
     fss_from_fractions,
     build_fraction_fields,

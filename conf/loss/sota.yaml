@@ -1,17 +1,17 @@
-_target_: src.losses.HybridLoss
+_target_: ainpp.losses.HybridLoss
 weights: [1.0, 0.1, 0.05]
 
 losses:
   # 1. Base: Advanced Torrential para acurácia de valores
-  - _target_: src.losses.AdvancedTorrentialLoss
+  - _target_: ainpp.losses.AdvancedTorrentialLoss
     thresholds: [10.0]
     weights: [5.0]
 
   # 2. Textura: Spectral Loss para nitidez global
-  - _target_: src.losses.SpectralLoss
+  - _target_: ainpp.losses.SpectralLoss
     alpha: 1.0
     beta: 0.5
 
   # 3. Realismo: Perceptual Loss para estrutura local
-  - _target_: src.losses.PerceptualLoss
+  - _target_: ainpp.losses.PerceptualLoss
     layer_ids: [3, 8, 15]

@@ -1,6 +1,6 @@
 import unittest
 import numpy as np
-from src.utils.standardization import LogZScoreStandardizer
+from ainpp.utils.standardization import LogZScoreStandardizer
 
 class TestUtils(unittest.TestCase):
     def test_log_zscore(self):

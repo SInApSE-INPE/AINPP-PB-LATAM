@@ -8,3 +8,6 @@ tqdm
 scikit-learn
 matplotlib
 scipy
+xarray
+dask
+timm

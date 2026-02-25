@@ -1,8 +1,8 @@
 import unittest
 import torch
 from omegaconf import OmegaConf
-from src.models.factory import get_model
-from src.models.unet import UNet
+from ainpp.models.factory import get_model
+from ainpp.models.unet import UNet
 
 class TestModels(unittest.TestCase):
     def test_unet_initialization(self):

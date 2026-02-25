@@ -3,7 +3,7 @@ import pytest
 import numpy as np
 import xarray as xr
 import pandas as pd
-from src.evaluation.categorical_metrics import (
+from ainpp.evaluation.categorical_metrics import (
     compute_contingency_hits,
     compute_categorical_stats,
     CategoricalConfig,

@@ -7,7 +7,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from src.models.unet.blocks import DoubleConv, DownBlock, UpBlock
+from ainpp.models.unet.blocks import DoubleConv, DownBlock, UpBlock
 
 logger = logging.getLogger(__name__)
 

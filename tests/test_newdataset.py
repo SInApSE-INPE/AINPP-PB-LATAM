@@ -9,7 +9,7 @@ FILE = Path(__file__).resolve()
 ROOT = FILE.parents[1]
 if str(ROOT) not in sys.path: sys.path.append(str(ROOT))
 
-from src.dataset import DatasetConfig, AINPPPBLATAMDataset, create_gsmap_dataloaders
+from ainpp.dataset import DatasetConfig, AINPPPBLATAMDataset, create_gsmap_dataloaders
 
 def _configure_logging(level: int = logging.INFO) -> None:
     logging.basicConfig(

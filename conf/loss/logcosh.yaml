@@ -1,1 +1,1 @@
-_target_: src.losses.LogCoshLoss
+_target_: ainpp.losses.LogCoshLoss

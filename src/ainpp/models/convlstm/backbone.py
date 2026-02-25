@@ -7,7 +7,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from src.models.convlstm.blocks import ConvLSTMCell
+from ainpp.models.convlstm.blocks import ConvLSTMCell
 
 
 logger = logging.getLogger(__name__)

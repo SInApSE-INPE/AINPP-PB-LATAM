@@ -1,0 +1,40 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ainpp"
+version = "0.1.0"
+description = "Nowcasting Benchmark for Latin America"
+readme = "README.md"
+requires-python = ">=3.8"
+license = {text = "MIT"}
+dependencies = [
+    "torch",
+    "torchvision",
+    "zarr",
+    "hydra-core",
+    "mlflow",
+    "pandas",
+    "tqdm",
+    "scikit-learn",
+    "matplotlib",
+    "scipy",
+    "xarray",
+    "dask",
+    "timm",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest",
+    "black",
+    "isort",
+    "mypy",
+]
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]

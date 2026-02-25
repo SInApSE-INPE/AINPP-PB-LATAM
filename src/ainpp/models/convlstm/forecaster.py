@@ -9,7 +9,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from src.models.convlstm.backbone import ConvLSTM2D
+from ainpp.models.convlstm.backbone import ConvLSTM2D
 
 
 logger = logging.getLogger(__name__)

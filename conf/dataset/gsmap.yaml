@@ -7,7 +7,7 @@
 
 dataset:
   # Python class to instantiate
-  _target_: src.datasets.gsmap.AINPPPBLATAMDataset
+  _target_: ainpp.datasets.gsmap.AINPPPBLATAMDataset
   
   # Path to the Zarr store
   zarr_path: "/prj/ideeps/adriano.almeida/data/ainpp/legacy/AINPP-PB-LATAM.zarr"
@@ -25,8 +25,8 @@ dataset:
   # --------------------------------------------------------------------------
   # Define the spatial dimensions of the input/target patches.
   # If using square patches, set both height and width to the same value.
-  patch_height: null
-  patch_width: null
+  patch_height: 320
+  patch_width: 320
   
   # Spatial Stride configuration.
   # - If null: defaults to patch_height/width (Non-overlapping patches).

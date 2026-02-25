@@ -2,7 +2,7 @@ import pandas as pd
 import pytest
 import numpy as np
 import xarray as xr
-from src.evaluation.continuous_metrics import compute_basic_error_metrics, compute_spearman_time_series
+from ainpp.evaluation.continuous_metrics import compute_basic_error_metrics, compute_spearman_time_series
 
 
 @pytest.fixture

@@ -4,14 +4,14 @@ import os
 import torch
 from unittest.mock import MagicMock, patch
 from omegaconf import OmegaConf
-from src.trainer import Trainer
+from ainpp.trainer import Trainer
 
 class TestTraining(unittest.TestCase):
     def setUp(self):
         self.test_dir = os.path.abspath("tests/test_training_output")
         os.makedirs(self.test_dir, exist_ok=True)
         # Mock MLFlow to avoid creating run artifacts
-        self.mlflow_patcher = patch('src.trainer.mlflow')
+        self.mlflow_patcher = patch('ainpp.trainer.mlflow')
         self.mock_mlflow = self.mlflow_patcher.start()
         
         # Force CPU

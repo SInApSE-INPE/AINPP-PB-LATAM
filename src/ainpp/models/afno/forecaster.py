@@ -13,7 +13,7 @@ import torch
 import torch.nn as nn
 
 # Assuming the block is available in your project structure
-from src.models.afno.blocks import AFNOBlock
+from ainpp.models.afno.blocks import AFNOBlock
 
 logger = logging.getLogger(__name__)
 

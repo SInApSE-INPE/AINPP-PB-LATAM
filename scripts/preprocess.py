@@ -7,7 +7,7 @@ sys.path.append(str(project_root))
 
 import hydra
 from omegaconf import DictConfig
-from src.preprocessing import Preprocessor
+from ainpp.preprocessing import Preprocessor
 import logging
 
 log = logging.getLogger(__name__)

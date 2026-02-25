@@ -3,17 +3,24 @@ from __future__ import annotations
 import torch
 import torch.nn as nn
 import timm
-from src.layers.blocks import Up
+from ainpp.models.xception.blocks import Up
 
 import logging
 logger = logging.getLogger(__name__)
 
-class InceptionV4MultiHorizon(nn.Module):
+
+class XceptionMultiHorizon(nn.Module):
     def __init__(self, input_timesteps=12, output_timesteps=6, pretrained=True):
         super().__init__()
-        logger.info("Initializing InceptionV4MultiHorizon forecaster.")
+        
+        # 1. Cria o Encoder usando timm
+        # 'xception': nome do modelo
+        # in_chans: timm ajusta a primeira camada automaticamente (12 canais)
+        # features_only: retorna uma lista de features [f0, f1, f2, f3, f4]
+        # out_indices: garante que pegamos as saídas dos 5 estágios (strides 2, 4, 8, 16, 32)
+        logger.info("Initializing XceptionMultiHorizon forecaster.")
         self.encoder = timm.create_model(
-            'inception_v4', 
+            'xception', 
             pretrained=pretrained, 
             in_chans=input_timesteps, 
             features_only=True,
@@ -25,7 +32,7 @@ class InceptionV4MultiHorizon(nn.Module):
         enc_channels = self.encoder.feature_info.channels()
         c0, c1, c2, c3, c4 = enc_channels
         
-        print(f"✅ Inception-V4 Encoder Channels: {enc_channels}")
+        print(f"✅ Xception Encoder Channels: {enc_channels}")
 
         # --- DECODER ---
         # Bottom (c4) -> Sobe para conectar com c3

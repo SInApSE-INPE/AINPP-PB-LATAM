@@ -15,8 +15,8 @@ from torch.utils.data import DataLoader
 from torch.utils.data.distributed import DistributedSampler
 from tqdm import tqdm
 
-from src.distributed import is_main_process
-from src.utils import save_epoch_checkpoint
+from ainpp.distributed import is_main_process
+from ainpp.utils import save_epoch_checkpoint
 
 logger = logging.getLogger(__name__)
 

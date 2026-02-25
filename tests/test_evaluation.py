@@ -6,9 +6,9 @@ import numpy as np
 import torch
 from unittest.mock import MagicMock
 from omegaconf import OmegaConf
-from src.evaluation.metrics import Metrics
-from src.evaluation.evaluator import Evaluator
-from src.utils.standardization import LogZScoreStandardizer
+from ainpp.evaluation.metrics import Metrics
+from ainpp.evaluation.evaluator import Evaluator
+from ainpp.utils.standardization import LogZScoreStandardizer
 
 class TestEvaluation(unittest.TestCase):
     def setUp(self):

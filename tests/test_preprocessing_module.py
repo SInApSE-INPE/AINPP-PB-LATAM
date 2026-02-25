@@ -2,7 +2,7 @@ import unittest
 from unittest.mock import MagicMock, patch
 from omegaconf import OmegaConf
 from pathlib import Path
-from src.preprocessing import Preprocessor
+from ainpp.preprocessing import Preprocessor
 import pandas as pd
 
 class TestPreprocessor(unittest.TestCase):
@@ -36,7 +36,7 @@ class TestPreprocessor(unittest.TestCase):
         self.assertEqual(p.lat_dim, 10)
         self.assertEqual(p.input_base, Path("/tmp/input"))
 
-    @patch("src.preprocessing.processor.Path.exists")
+    @patch("ainpp.preprocessing.processor.Path.exists")
     def test_find_gsmap_file(self, mock_exists):
         p = Preprocessor(self.config)
         mock_exists.return_value = True
@@ -55,10 +55,10 @@ class TestPreprocessor(unittest.TestCase):
         self.assertIsNotNone(path)
         self.assertIn("gsmap_nrt.20200101.1200.dat.gz", str(path))
 
-    @patch("src.preprocessing.processor.pd.date_range")
-    @patch("src.preprocessing.processor.da")
-    @patch("src.preprocessing.processor.xr")
-    @patch("src.preprocessing.processor.np.save")
+    @patch("ainpp.preprocessing.processor.pd.date_range")
+    @patch("ainpp.preprocessing.processor.da")
+    @patch("ainpp.preprocessing.processor.xr")
+    @patch("ainpp.preprocessing.processor.np.save")
     def test_run_structure(self, mock_save, mock_xr, mock_da, mock_date_range):
         # Mock dependencies to avoid real computation
         p = Preprocessor(self.config)

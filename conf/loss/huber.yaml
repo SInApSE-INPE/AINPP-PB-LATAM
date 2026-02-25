@@ -1,1 +1,1 @@
-_target_: src.losses.HuberLoss
+_target_: ainpp.losses.HuberLoss

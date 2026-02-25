@@ -26,8 +26,8 @@ ROOT = FILE.parents[1]
 if str(ROOT) not in sys.path:
     sys.path.append(str(ROOT))
 
-from src.distributed import setup_distributed, cleanup_distributed, is_main_process
-from src.engine_gan import run_gan_training
+from ainpp.distributed import setup_distributed, cleanup_distributed, is_main_process
+from ainpp.engine_gan import run_gan_training
 
 
 def _configure_threading() -> None:

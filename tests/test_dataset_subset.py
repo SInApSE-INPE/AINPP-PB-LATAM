@@ -3,7 +3,7 @@ from unittest.mock import MagicMock, patch
 import pandas as pd
 import numpy as np
 from omegaconf import OmegaConf
-from src.datasets import NowcastingDataset
+from ainpp.datasets import NowcastingDataset
 
 class TestDatasetSubset(unittest.TestCase):
     def setUp(self):
@@ -17,7 +17,7 @@ class TestDatasetSubset(unittest.TestCase):
             }
         })
 
-    @patch('src.dataset.zarr')
+    @patch('ainpp.dataset.zarr')
     def test_time_filtering(self, mock_zarr):
         # Mock Zarr store
         mock_store = MagicMock()
@@ -39,7 +39,7 @@ class TestDatasetSubset(unittest.TestCase):
         # Verify indices: first 10
         np.testing.assert_array_equal(ds_train.valid_indices, np.arange(10))
 
-    @patch('src.dataset.zarr')
+    @patch('ainpp.dataset.zarr')
     def test_val_time_filtering(self, mock_zarr):
         mock_store = MagicMock()
         mock_zarr.open.return_value = mock_store
@@ -55,7 +55,7 @@ class TestDatasetSubset(unittest.TestCase):
         self.assertEqual(len(ds_val), 10)
         np.testing.assert_array_equal(ds_val.valid_indices, np.arange(10, 20))
         
-    @patch('src.dataset.zarr')
+    @patch('ainpp.dataset.zarr')
     def test_empty_period(self, mock_zarr):
         mock_store = MagicMock()
         mock_zarr.open.return_value = mock_store

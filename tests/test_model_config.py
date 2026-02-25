@@ -2,7 +2,7 @@ import torch
 import pytest
 from torch import nn
 from omegaconf import OmegaConf
-from src.models.unet import UNet, get_activation, get_norm
+from ainpp.models.unet import UNet, get_activation, get_norm
 
 @pytest.fixture
 def default_config():

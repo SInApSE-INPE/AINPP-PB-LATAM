@@ -5,8 +5,8 @@ import json
 import torch
 import numpy as np
 from tqdm import tqdm
-from src.evaluation.metrics import Metrics
-from src.visualization import VisualizationRunner
+from ainpp.evaluation.metrics import Metrics
+from ainpp.visualization import VisualizationRunner
 
 class Evaluator:
     def __init__(self, model, test_loader, config, standardizer, device='cpu'):

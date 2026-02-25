@@ -1,4 +1,4 @@
-_target_: src.models.xception.forecaster.XceptionMultiHorizon
+_target_: ainpp.models.xception.forecaster.XceptionMultiHorizon
 
 input_timesteps: ${input_timesteps}
 output_timesteps: ${output_timesteps}

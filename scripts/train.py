@@ -6,9 +6,9 @@ import torch
 import torch.distributed as dist
 from omegaconf import DictConfig
 from torch.utils.data import DataLoader, DistributedSampler
-from src.datasets import NowcastingDataset
-from src.models.factory import get_model
-from src.trainer import Trainer
+from ainpp.datasets import NowcastingDataset
+from ainpp.models.factory import get_model
+from ainpp.trainer import Trainer
 
 @hydra.main(config_path="../conf", config_name="config", version_base=None)
 def main(cfg: DictConfig):

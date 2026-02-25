@@ -1,0 +1,16 @@
+torch
+torchvision
+zarr
+hydra-core
+mlflow
+pandas
+tqdm
+scikit-learn
+matplotlib
+scipy
+
+[dev]
+pytest
+black
+isort
+mypy
