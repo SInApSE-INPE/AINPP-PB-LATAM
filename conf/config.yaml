@@ -5,6 +5,8 @@ hidden_channels: [32, 32, 32]
 kernel_size: 7
 output_timesteps: 6
 
+task: train
+
 
 defaults:
   - _self_
