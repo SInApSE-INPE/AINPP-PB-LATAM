@@ -1,44 +1,56 @@
-# Nowcasting Benchmark for Latin America
+# AINPP Precipitation Benchmark
 
-## Objective
-The goal of this project is to establish a robust and modular benchmark for **precipitation nowcasting** (up to 6 hours) using deep learning models in a **supercomputing environment**.
+![Build](https://img.shields.io/badge/CI-local--check-lightgrey)
+![Docs](https://img.shields.io/badge/docs-MkDocs%2FMaterial-blue)
+![License](https://img.shields.io/badge/license-MIT-green)
+![Python](https://img.shields.io/badge/python-3.10%2B-blue)
 
-The study area covers **Latin America** (Lat: -55 to 33, Lon: -120 to -23). The system is designed to handle large-scale **Zarr** datasets containing satellite precipitation estimates (`gsmap_nrt` as input, `gsmap_mvk` as target).
+Unified Hydra-driven CLI and documentation for precipitation nowcasting in Latin America.
 
-## Key Features
-- **Modular Design**: Separated modules for Dataset, Models, Training, and Evaluation.
-- **Configurable**: Powered by **Hydra** for flexible configuration of hyperparameters, models, and data paths.
-- **Experiment Tracking**: Integrated with **MLFlow** for logging metrics, parameters, and artifacts.
-- **Distributed Training**: Native support for **Multi-GPU/Multi-Node** training using `torchrun` and `DistributedDataParallel`.
-- **Model Support**: Extensible Model Factory supporting state-of-the-art architectures like AFNO, U-Net, and more.
+## Table of Contents
+- [Quick Start](#quick-start)
+- [Unified CLI (Hydra)](#unified-cli-hydra)
+- [Tests & Quality Gates](#tests--quality-gates)
+- [Documentation](#documentation)
+- [Model Zoo (select via Hydra model)](#model-zoo-select-via-hydra-model)
+- [Training Methods & Configuration](#training-methods--configuration)
+- [Project Structure (key parts)](#project-structure-key-parts)
 
-## Installation
-
-1. Clone the repository.
-2. Install dependencies:
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-## Model Zoo
-
-This benchmark includes a variety of architectures tailored for spatiotemporal forecasting.
-
-| Model | Type | Description | Key Reference |
-| :--- | :--- | :--- | :--- |
-| **AFNO** | Transformer | Adaptive Fourier Neural Operator. Uses spectral mixing for efficient global context modeling. | [Guibas et al., 2021](https://arxiv.org/abs/2111.13587) |
-| **U-Net** | CNN | Classic encoder-decoder with skip connections. High precision for local features. | [Ronneberger et al., 2015](https://arxiv.org/abs/1505.04597) |
-| **ConvLSTM** | RNN | Convolutional LSTM. Captures temporal dynamics explicitly through recurrent states. | [Shi et al., 2015](https://arxiv.org/abs/1506.04214) |
-| **ResNet50** | CNN | Deep residual network adapted for dense prediction. Good at feature extraction. | [He et al., 2016](https://arxiv.org/abs/1512.03385) |
-| **InceptionV4**| CNN | Multi-scale inception modules. Captures features at different spatial scales simultaneously. | [Szegedy et al., 2017](https://arxiv.org/abs/1602.07261) |
-| **Xception** | CNN | Depthwise separable convolutions. Efficient and parameter-light. | [Chollet, 2017](https://arxiv.org/abs/1610.02357) |
-
-### Configuring Models
-Select a model using the Hydra `model` parameter:
+## Quick Start
 ```bash
-python scripts/train.py model=afno
-python scripts/train.py model=unet/direct
+python -m venv .venv
+source .venv/bin/activate
+pip install -e .[dev,docs]
 ```
+
+### Unified CLI (Hydra)
+Run all stages via `main.py`:
+- Preprocess: `python main.py task=preprocess preprocessing.region.name=amazon-basin`
+- Train: `python main.py task=train training.epochs=5 dataset.dataset.zarr_path=/path/to/zarr`
+- Evaluate: `python main.py task=evaluate checkpoint=outputs/checkpoint.pth`
+
+Override any config with Hydra syntax: `key=value` (configs live in `conf/`).
+
+### Tests & Quality Gates
+```bash
+./scripts/check_all.sh    # pytest + coverage + lint/typecheck
+```
+
+### Documentation
+- Local preview: `mkdocs serve`
+- Build: `mkdocs build`
+- (If published) GitHub Pages link: _add repo Pages URL here_.
+
+## Model Zoo (select via Hydra `model=...`)
+
+| Model | Type | Highlight |
+| :--- | :--- | :--- |
+| AFNO | Transformer | Spectral mixing for global context |
+| U-Net | CNN | Encoder-decoder with skips |
+| ConvLSTM | RNN | Explicit temporal dynamics |
+| ResNet50 | CNN | Deep residual features |
+| InceptionV4 | CNN | Multi-scale inception blocks |
+| Xception | CNN | Depthwise separable, lightweight |
 
 ## Loss Functions
 
@@ -68,10 +80,7 @@ We provide specialized loss functions to handle the challenges of precipitation 
 - **`HybridLoss`**: Weighted combination of multiple losses.
   - *Example*: `1.0 * MSE + 0.1 * SSIM`
 
-Configuration via Hydra (`conf/loss`):
-```bash
-python scripts/train.py loss=hybrid_mse_ssim
-```
+Configure losses via Hydra (`loss=...`, see `conf/loss/`).
 
 ## Training Methods & Configuration
 
@@ -108,14 +117,12 @@ torchrun --nproc_per_node=4 scripts/train.py
 
 ### Single Device Training
 ```bash
-python scripts/train.py
+python main.py task=train
 ```
 
 ### Evaluation
-To evaluate a trained model, use the `scripts/evaluate.py` script. This module calculates continuous, categorical, and probabilistic metrics and generates performance diagrams.
-
 ```bash
-python scripts/evaluate.py checkpoint=outputs/my_run/best_model.pt
+python main.py task=evaluate checkpoint=outputs/my_run/best_model.pt
 ```
 
 #### Evaluation Metrics
@@ -123,16 +130,12 @@ python scripts/evaluate.py checkpoint=outputs/my_run/best_model.pt
 -   **Categorical** (per threshold): POD, FAR, CSI (TS), ETS.
 -   **Probabilistic**: CRPS, Reliability Diagrams.
 
-## Project Structure
-- `conf/`: Hydra configuration files.
-  - `model/`: Configurations for AFNO, UNet, etc.
-  - `loss/`: Configurations for Hybrid, MSE, etc.
-- `src/`: Source code.
-  - `dataset.py`: Zarr data loading and time slicing.
-  - `models/`: Model architectures and factory.
-  - `losses.py`: Implementation of all loss functions.
-  - `engine.py`: Training loop with DDP and MLFlow support.
-- `scripts/`: Entry points for training and evaluation.
+## Project Structure (key parts)
+- `main.py` — unified Hydra CLI for preprocess/train/evaluate
+- `conf/` — configuration hierarchy
+- `src/ainpp/` — library code (datasets, models, preprocessing, evaluation, visualization)
+- `docs/` — MkDocs sources (API via mkdocstrings)
+- `scripts/` — supporting utilities (legacy entry points now superseded by `main.py`)
 
 ## Data
 The dataset is expected to be in **Zarr** format with the following structure:
