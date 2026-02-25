@@ -34,6 +34,13 @@ dev = [
     "isort",
     "mypy",
 ]
+docs = [
+    "mkdocs>=1.5",
+    "mkdocs-material>=9.5",
+    "mkdocstrings>=0.24",
+    "mkdocstrings-python>=1.8",
+    "mkdocs-gen-files>=0.5",
+]
 
 [tool.setuptools]
 package-dir = {"" = "src"}

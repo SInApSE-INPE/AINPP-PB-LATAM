@@ -110,3 +110,30 @@ def save_epoch_checkpoint(model: nn.Module, epoch: int, save_dir: Union[str, Pat
     path.parent.mkdir(parents=True, exist_ok=True)
     torch.save(model.state_dict(), path)
     logger.info(f"Periodic checkpoint saved: {path}")
+
+
+# ---------------------------------------------------------------------------
+# Helper builders for CLI entry point
+# ---------------------------------------------------------------------------
+def build_loss(loss_cfg: Any) -> nn.Module:
+    """
+    Instantiate a loss module from a Hydra config object.
+    """
+    from hydra.utils import instantiate
+
+    return instantiate(loss_cfg)
+
+
+def build_optimizer(parameters, training_cfg: Any):
+    """
+    Build an Adam optimizer using fields commonly present in training configs.
+    Falls back to lr if lr_g is absent (GAN vs supervised).
+    """
+    import torch
+
+    lr = training_cfg.get("lr", training_cfg.get("lr_g", 1e-3))
+    betas = (
+        training_cfg.get("beta1", 0.9),
+        training_cfg.get("beta2", 0.999),
+    )
+    return torch.optim.Adam(parameters, lr=lr, betas=betas)

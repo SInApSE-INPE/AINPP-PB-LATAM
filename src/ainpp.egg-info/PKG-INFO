@@ -20,9 +20,17 @@ Requires-Dist: dask
 Requires-Dist: timm
 Provides-Extra: dev
 Requires-Dist: pytest; extra == "dev"
+Requires-Dist: pytest-cov; extra == "dev"
+Requires-Dist: coverage; extra == "dev"
 Requires-Dist: black; extra == "dev"
 Requires-Dist: isort; extra == "dev"
 Requires-Dist: mypy; extra == "dev"
+Provides-Extra: docs
+Requires-Dist: mkdocs>=1.5; extra == "docs"
+Requires-Dist: mkdocs-material>=9.5; extra == "docs"
+Requires-Dist: mkdocstrings>=0.24; extra == "docs"
+Requires-Dist: mkdocstrings-python>=1.8; extra == "docs"
+Requires-Dist: mkdocs-gen-files>=0.5; extra == "docs"
 
 # Nowcasting Benchmark for Latin America
 
