@@ -1,0 +1,109 @@
+storyId: STORY-001
+createdAt: "2026-02-25T14:30:00Z"
+createdBy: "@architect"
+status: pending
+complexity: STANDARD
+estimatedEffort: "2-4 days"
+
+dependencies:
+  - name: setuptools
+    version: ">=61.0"
+    purpose: Modern build system for Python
+  - name: hydra-core
+    version: ">=1.3"
+    purpose: Configuration management for scientific experiments
+
+phases:
+  - id: phase-1
+    name: "Setup & Packaging"
+    description: "Establish the modern package structure and build system."
+    subtasks:
+      - id: "1.1"
+        description: "Create pyproject.toml with standard PEP 517/518 build-system and project metadata."
+        service: infra
+        files:
+          - pyproject.toml
+        verification:
+          type: command
+          command: "python3 -m pip install --dry-run ."
+        status: pending
+
+      - id: "1.2"
+        description: "Migrate src/ directory to src/ainpp/ for proper SRC layout and installability."
+        service: infra
+        files:
+          - src/ainpp/
+        verification:
+          type: command
+          command: "ls src/ainpp/__init__.py"
+        status: pending
+
+  - id: phase-2
+    name: "Core Refactoring"
+    description: "Update imports and decouple logic in core modules."
+    subtasks:
+      - id: "2.1"
+        description: "Update all project imports to use the new 'ainpp' namespace and remove sys.path hacks."
+        service: backend
+        files:
+          - src/ainpp/engine.py
+          - src/ainpp/datasets/gsmap.py
+          - src/ainpp/utils.py
+        verification:
+          type: command
+          command: "python3 -m py_compile src/ainpp/*.py"
+        status: pending
+        dependencies: ["1.2"]
+
+      - id: "2.2"
+        description: "Decouple training engine from visualization by moving save_epoch_sample to ainpp.visualization."
+        service: backend
+        files:
+          - src/ainpp/engine.py
+          - src/ainpp/visualization/samples.py
+        verification:
+          type: command
+          command: "pytest tests/test_training.py"
+        status: pending
+        dependencies: ["2.1"]
+
+  - id: phase-3
+    name: "Data & Configuration"
+    description: "Parameterize the dataset pipeline using Hydra and refactor preprocessing."
+    subtasks:
+      - id: "3.1"
+        description: "Create Hydra configuration for GSMaP dataset parameters (paths, regions, chunks)."
+        service: backend
+        files:
+          - conf/dataset/gsmap.yaml
+        verification:
+          type: command
+          command: "python3 -m hydra.core.global_hydra"
+        status: pending
+
+      - id: "3.2"
+        description: "Refactor save_dataset.py into a reusable PreprocessingPipeline class in ainpp.preprocessing."
+        service: backend
+        files:
+          - src/ainpp/preprocessing/pipeline.py
+        verification:
+          type: command
+          command: "pytest tests/test_preprocessing_module.py"
+        status: pending
+        dependencies: ["3.1"]
+
+  - id: phase-4
+    name: "Documentation & Polish"
+    description: "Standardize code quality and prepare documentation."
+    subtasks:
+      - id: "4.1"
+        description: "Standardize all docstrings to Google-style and ensure full type hint coverage in ainpp/core."
+        service: backend
+        files:
+          - src/ainpp/engine.py
+          - src/ainpp/utils.py
+        verification:
+          type: command
+          command: "mypy src/ainpp"
+        status: pending
+        dependencies: ["2.2"]
