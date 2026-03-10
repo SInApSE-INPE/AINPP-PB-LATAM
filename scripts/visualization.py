@@ -1,8 +1,8 @@
 
-import sys
-sys.path.insert(0, "/prj/ideeps/adriano.almeida/benchmark")
 import os
-import shutil
+
+
+
 import json
 import numpy as np
 from ainpp.visualization.runner import VisualizationRunner

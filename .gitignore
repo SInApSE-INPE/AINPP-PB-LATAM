@@ -2,12 +2,15 @@ __pycache__/
 *.pyc
 *.pyo
 src/ainpp.egg-info/
+src/ainpp.egg-info/**
 data/
 mlruns/
 outputs/
 __pycache__/*
 tests/dummy_env/
 tests/dummy_env/**
+.agents/
+.agents/**
 
 *pyc
 

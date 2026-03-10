@@ -1,13 +1,13 @@
-import sys;
-sys.path.insert(0, "/prj/ideeps/adriano.almeida/benchmark")
+
+
 import hydra
 import os
 import torch
 import torch.distributed as dist
 from omegaconf import DictConfig
 from torch.utils.data import DataLoader, DistributedSampler
+from hydra.utils import instantiate
 from ainpp.datasets import NowcastingDataset
-from ainpp.models.factory import get_model
 from ainpp.trainer import Trainer
 
 @hydra.main(config_path="../conf", config_name="config", version_base=None)
@@ -77,7 +77,7 @@ def main(cfg: DictConfig):
     )
     
     # 2. Instantiate Model
-    model = get_model(cfg)
+    model = instantiate(cfg.model)
     
     # 3. Initialize Trainer
     trainer = Trainer(model, train_loader, val_loader, cfg, rank=rank, local_rank=local_rank)

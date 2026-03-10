@@ -1,16 +1,14 @@
-import sys
 import os
 import torch
 import hydra
 from omegaconf import DictConfig, OmegaConf
 
-# Add project root to path to ensure imports work
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
 
 from ainpp.datasets import NowcastingDataset
 from ainpp.evaluation.evaluator import Evaluator
-from ainpp.utils.standardization import LogZScoreStandardizer
-from ainpp.models.factory import get_model # Assuming this exists or using direct import if not
+from ainpp._utils.standardization import LogZScoreStandardizer
+from hydra.utils import instantiate
 
 @hydra.main(config_path="../conf", config_name="config", version_base=None)
 def main(cfg: DictConfig):
@@ -27,19 +25,8 @@ def main(cfg: DictConfig):
     )
     
     # 2. Model
-    # Load model structure
-    # Assuming we have a factory or direct init.
-    # If get_model is not available, we need to import specific model class
-    try:
-        from ainpp.models.factory import get_model
-        model = get_model(cfg)
-    except ImportError:
-        # Fallback if factory doesn't exist, instantiate UNet directly (as seen in config)
-        from ainpp.models.unet import UNet # Hypothetical import based on conf
-        # Or check conf/model/unet.yaml for class info
-        pass 
-        # For now, let's assume we can get the model. 
-        # If verification fails, I'll fix this.
+    # Load model structure using Hydra
+    model = instantiate(cfg.model)
     
     # Check for checkpoint
     checkpoint_path = cfg.get("checkpoint", "outputs/checkpoint.pth") # Default or parameterized

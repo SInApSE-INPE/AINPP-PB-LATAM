@@ -14,15 +14,18 @@ dependencies = [
     "torchvision",
     "zarr",
     "hydra-core",
+    "omegaconf",
     "mlflow",
     "pandas",
     "tqdm",
     "scikit-learn",
     "matplotlib",
+    "seaborn",
     "scipy",
     "xarray",
     "dask",
     "timm",
+    "numpy",
 ]
 
 [project.optional-dependencies]

@@ -1,14 +1,7 @@
 import torch
 import matplotlib.pyplot as plt
 import numpy as np
-import pathlib
 
-# Garantir que o diretório raiz do projeto está no sys.path
-import sys
-FILE = pathlib.Path(__file__).resolve()
-ROOT = FILE.parents[1]  # Diretório raiz do projeto
-if str(ROOT) not in sys.path:
-    sys.path.append(str(ROOT))
 from ainpp.datasets.gsmap import AINPPPBLATAMDataset
 # Importe a classe do seu modelo específico aqui. Exemplo:
 from ainpp.models.unet.forecaster import UNetMultiHorizon 

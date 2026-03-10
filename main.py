@@ -1,5 +1,4 @@
 import logging
-import sys
 from pathlib import Path
 from typing import Callable
 
@@ -8,12 +7,9 @@ from hydra import compose, initialize_config_dir
 from hydra.utils import to_absolute_path, instantiate
 from omegaconf import DictConfig, OmegaConf
 
-# Ensure project src is on sys.path when running from hydra's working dir
-PROJECT_ROOT = Path(__file__).resolve().parent
-SRC_PATH = PROJECT_ROOT / "src"
-for candidate in (PROJECT_ROOT, SRC_PATH):
-    if str(candidate) not in sys.path:
-        sys.path.append(str(candidate))
+# Require proper installation instead of sys.path hacks.
+# Ensure you have run: uv pip install -e .
+
 
 from ainpp.preprocessing.pipeline import PreprocessingPipeline
 from ainpp.datasets import NowcastingDataset

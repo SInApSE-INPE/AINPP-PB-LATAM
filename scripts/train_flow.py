@@ -7,9 +7,7 @@ and execution of the training engine.
 """
 
 import os
-import sys
 import multiprocessing
-from pathlib import Path
 
 import torch
 import torch.nn as nn
@@ -20,11 +18,6 @@ from hydra.utils import instantiate
 import hydra
 from omegaconf import DictConfig
 
-# Ensure project root is in sys.path
-FILE = Path(__file__).resolve()
-ROOT = FILE.parents[1]
-if str(ROOT) not in sys.path:
-    sys.path.append(str(ROOT))
 
 from ainpp.distributed import setup_distributed, cleanup_distributed, is_main_process
 from ainpp.engine import run_training
