@@ -11,6 +11,8 @@ tests/dummy_env/
 tests/dummy_env/**
 .agents/
 .agents/**
+samples/
+samples/**
 
 *pyc
 
