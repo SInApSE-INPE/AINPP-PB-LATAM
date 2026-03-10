@@ -1,147 +1,239 @@
 # AINPP Precipitation Benchmark
 
-![Build](https://img.shields.io/badge/CI-local--check-lightgrey)
-![Docs](https://img.shields.io/badge/docs-MkDocs%2FMaterial-blue)
-![License](https://img.shields.io/badge/license-MIT-green)
-![Python](https://img.shields.io/badge/python-3.10%2B-blue)
+Unified scientific benchmark library for precipitation nowcasting in Latin America using deep learning on high-performance computing (HPC) environments.
 
-Unified Hydra-driven CLI and documentation for precipitation nowcasting in Latin America.
+## Key Features
 
-## Table of Contents
-- [Quick Start](#quick-start)
-- [Unified CLI (Hydra)](#unified-cli-hydra)
-- [Tests & Quality Gates](#tests--quality-gates)
-- [Documentation](#documentation)
-- [Model Zoo (select via Hydra model)](#model-zoo-select-via-hydra-model)
-- [Training Methods & Configuration](#training-methods--configuration)
-- [Project Structure (key parts)](#project-structure-key-parts)
+- **Extensive Model Zoo**: AFNO, ConvLSTM, GAN, Graph NN, InceptionV4, ResNet50, UNet, and Xception.
+- **Scalable HPC Training**: Built-in support for Single GPU, Multi-GPU (Distributed Data Parallel), and Multi-Node clusters.
+- **Standardized Data Formats**: Optimized data loading and processing utilizing Zarr archives with daily/hourly grid matrices.
+- **Config-Driven Architecture**: Fully modular, parameterized via Hydra to completely decouple code from experiments.
+- **Metrics & Evaluation**: Three-pronged evaluation module covering Spatial, Continuous, and Probabilistic metrics.
 
-## Quick Start
+---
+
+## 🛠 Tech Stack
+
+- **Language**: Python 3.10+
+- **Deep Learning**: PyTorch, Torchvision, TIMM
+- **Experiment Tracking**: MLflow
+- **Configuration**: Hydra, OmegaConf
+- **Data Processing**: Zarr, Xarray, Dask, Pandas, Numpy
+- **Metrics & Science**: Scikit-Learn, SciPy
+- **Package Manager**: `uv`
+
+---
+
+## Prerequisites
+
+- Python 3.10 or higher.
+- NVIDIA GPUs available (CUDA environment) for practical training and evaluation.
+- `uv` installed on the system (a blazing-fast Python package installer and resolver).
+
+---
+
+## Getting Started
+
+### 1. Clone the Repository
+
 ```bash
-python -m venv .venv
+git clone https://github.com/user/ainpp-pb-latam.git
+cd ainpp-pb-latam
+```
+
+### 2. Set Up the Environment
+
+The project relies on `uv` to maintain its isolated environment. Create a virtual environment:
+
+```bash
+uv venv
+```
+
+Activate the environment:
+
+```bash
+# On Linux/macOS
 source .venv/bin/activate
-pip install -e .[dev,docs]
 ```
 
-### Unified CLI (Hydra)
-Run all stages via `main.py`:
-- Preprocess: `python main.py task=preprocess preprocessing.region.name=amazon-basin`
-- Train: `python main.py task=train training.epochs=5 dataset.dataset.zarr_path=/path/to/zarr`
-- Evaluate: `python main.py task=evaluate checkpoint=outputs/checkpoint.pth`
+### 3. Install Dependencies
 
-Override any config with Hydra syntax: `key=value` (configs live in `conf/`).
+**CRITICAL**: The package must always be installed in editable mode (`-e`) using `uv`. Do not use `sys.path` hacks in your experiments.
 
-### Tests & Quality Gates
 ```bash
-./scripts/check_all.sh    # pytest + coverage + lint/typecheck
+# Install the core package along with dev and docs dependencies
+uv pip install -e .[dev,docs]
 ```
 
-### Documentation
-- Local preview: `mkdocs serve`
-- Build: `mkdocs build`
-- (If published) GitHub Pages link: _add repo Pages URL here_.
+### 4. Verify Installation
 
-## Model Zoo (select via Hydra `model=...`)
+You can check if the CLI is ready and Hydra configuration is locatable:
 
-| Model | Type | Highlight |
-| :--- | :--- | :--- |
-| AFNO | Transformer | Spectral mixing for global context |
-| U-Net | CNN | Encoder-decoder with skips |
-| ConvLSTM | RNN | Explicit temporal dynamics |
-| ResNet50 | CNN | Deep residual features |
-| InceptionV4 | CNN | Multi-scale inception blocks |
-| Xception | CNN | Depthwise separable, lightweight |
-
-## Loss Functions
-
-We provide specialized loss functions to handle the challenges of precipitation nowcasting (e.g., sparsity, high-intensity events, blurring).
-
-### 1. Pixel-wise Losses
-- **`WeightedMSE`**: Standard MSE with a dynamic weight mask.
-  - *Formula*: $L = (y - \hat{y})^2 \times (1 + \alpha \cdot y)$
-  - *Use case*: Penalizing errors in heavy rain regions more than light rain/zeros.
-- **`LogCosh`**: Smooth approximation of MAE.
-  - *Use case*: Robust to outliers, essentially a differentiable Huber loss.
-- **`HuberLoss`**: Combination of MSE (near 0) and MAE (far from 0).
-  - *Use case*: Handling noisy data.
-
-### 2. Structural & Perceptual Losses
-- **`SSIMLoss`**: Structural Similarity Index (inverted).
-  - *Use case*: Preserving structural consistency and reducing the "blurring" effect common in MSE models.
-- **`SpectralLoss`**: Frequency domain loss (Amplitude + Phase) using FFT.
-  - *Use case*: Ensuring the model captures global textures and high-frequency details.
-- **`PerceptualLoss`**: Feature-level MSE using a pre-trained VGG16 network.
-  - *Use case*: Forcing the model to generate realistically looking rain patterns.
-
-### 3. Classification & Hybrid Losses
-- **`DiceLoss`**: Overlap metric for binary rain masks.
-  - *Use case*: Improving the spatial extent prediction of storm cells.
-- **`BinaryFocalLoss`**: Focuses on hard-to-classify examples (heavy rain vs. no rain).
-- **`HybridLoss`**: Weighted combination of multiple losses.
-  - *Example*: `1.0 * MSE + 0.1 * SSIM`
-
-Configure losses via Hydra (`loss=...`, see `conf/loss/`).
-
-## Training Methods & Configuration
-
-The training engine is built on `PyTorch` and `Hydra`, optimized for HPC environments.
-
-### Main Configuration (`conf/config.yaml`)
-
-| Parameter | Default | Description |
-| :--- | :--- | :--- |
-| `input_timesteps` | 12 | Number of past frames (e.g., 1 hour at 5-min intervals). |
-| `output_timesteps`| 6 | Number of future frames to predict (e.g., 30 mins). |
-| `training.batch_size` | 16 | Batch size per GPU. |
-| `training.epochs` | 100 | Maximum epochs. |
-| `training.lr` | 0.001 | Learning rate (Adam optimizer). |
-
-### Distributed Data Parallel (DDP)
-The framework uses `torch.distributed` for synchronous multi-GPU training.
-- **Rank 0 (Master)**: Handles logging (tqdm, MLFlow), checkpointing, and validation aggregation.
-- **Synchronization**: gradients are averaged across all GPUs. Loss calculation is local.
-
-To run on 4 GPUs:
 ```bash
-torchrun --nproc_per_node=4 scripts/train.py
+python main.py --help
 ```
 
-### Early Stopping & Checkpointing
-- **Early Stopping**: Monitors validation loss. If it doesn't improve for `patience` (default: 10) epochs, training stops.
-  - *Logic*: All GPUs synchronize the stop signal to avoid deadlocks.
-- **Checkpointing**: Saves model state, optimizer, and epoch.
-  - *Best Model*: Always saves the model with the lowest validation loss to `best_model.pt`.
-  - *Periodic*: Saves every `N` epochs.
+---
 
-## Usage
+## Architecture Overview
 
-### Single Device Training
+### Data Constraints & Design
+The benchmark operates under strict spatio-temporal properties tailored for the Brazilian/Latin-American precipitation models:
+- **Base Format**: `.zarr` file stores.
+- **Data Splits**: 
+  - `train`: 2018 to 2022
+  - `validation`: 2023
+  - `test`: 2024
+- **Structural Properties**: 
+  - Matrices of `880 x 970` spatial grids.
+  - Hourly granularity.
+- **Temporal Configuration**:
+  - Input: 12 consecutive hours originating from `gsmap_nrt`.
+  - Target (Prediction): 6 consecutive hours pointing to `gsmap_mvk`.
+- **Training Strategies**: Models can be trained using either an **Autoregressive** (predict 1 step, feed-back, repeat) or **Direct** (predict all 6 steps at once) approach.
+
+### Directory Structure
+
+```
+├── conf/                     # Hydra configuration YAMLs
+│   ├── config.yaml           # Root configuration
+│   ├── dataset/              # Dataloader & data path configs
+│   ├── discriminator/        # GAN discriminators (e.g. patchgan)
+│   ├── evaluation/           # Evaluation metric definitions
+│   ├── loss/                 # Loss functions (e.g., mse, ssim)
+│   ├── model/                # Architecture configurations (unet, afno, etc.)
+│   ├── preprocessing/        # Data prep configurations
+│   ├── training/             # Optimizer, lr scheduler, epochs
+│   └── visualization/        # Plotting parameters
+├── docs/                     # MkDocs documentation
+├── scripts/                  # Utilities (legacy running blocks, bash scripts)
+│   ├── check_all.sh          # Full quality-gate workflow
+│   └── enforce_coverage.py   # Coverage tools
+├── src/
+│   └── ainpp/                # Core Python package
+│       ├── datasets/         # Zarr loading and sampling logic
+│       ├── evaluation/       # Benchmark metric calculators
+│       ├── layers/           # Reusable neural network layers
+│       ├── models/           # Model Zoo definitions (UNet, ResNet, etc.)
+│       ├── preprocessing/    # Data preparation pipelines
+│       ├── visualization/    # Handlers for model output plotting
+│       ├── distributed.py    # DDP sync rules for Multi-Node
+│       ├── engine.py         # Standard training loops
+│       ├── engine_gan.py     # specialized loops for GAN-based setups
+│       ├── losses.py         # Specialized precipitation loss implementations
+│       └── utils.py          # Object builders (Loss, Optimizer)
+├── tests/                    # Pytest suite
+├── main.py                   # Unified CLI Entry point
+├── pyproject.toml            # Build system definitions
+└── uv.lock                   # Deterministic python dependency tree
+```
+
+### Request Lifecycle
+
+1. You run `python main.py task=<TASK_TYPE>`.
+2. **Hydra** merges `conf/config.yaml` with the sub-dictionaries provided (loss, models, training parameters) and command-line overrides.
+3. Depending on the task (`preprocess`, `train`, `evaluate`):
+   - Initializes the Zarr Datasets via `ainpp.datasets`.
+   - Compiles the Model defined in `conf/model/` and ships it to GPU (or configures `DistributedDataParallel`).
+   - Hooks into `ainpp.engine` or `ainpp.evaluation` and streams data until completion.
+
+---
+
+## Configuration via Hydra
+
+This project delegates all configurations (hyperparameters, variables, dataset paths, training parameters) to **Hydra**. We do **not** use `argparse` or `.env` files for architecture controls.
+
+### Modifying Parameters
+You can override any parameter on the command line using the simple `.yaml` trajectory:
+
 ```bash
-python main.py task=train
+# Change the learning rate and batch size for a training run:
+python main.py task=train training.lr=0.0005 dataset.train_loader.batch_size=32
+
+# Change the model to an AFNO and loss to a Hybrid scheme:
+python main.py task=train model=afno loss=hybrid_mse_ssim
 ```
 
-### Evaluation
+### Understanding Loss Functions
+We provide specialized loss functions designed for high-intensity precipitation tasks:
+- **Pixel-wise**: `WeightedMSE` (penalizes heavy rain errors), `LogCosh`, `HuberLoss`.
+- **Structural**: `SSIMLoss` (anti-blurring), `SpectralLoss`, `PerceptualLoss` (Feature MSE).
+- **Hybrid**: `HybridLoss` (configurable weighted summation).
+
+---
+
+## Available Commands
+
+Run any stage via `main.py`.
+
+| Command | Description |
+|---|---|
+| `python main.py task=preprocess` | Run the standard dataset preprocessing algorithms. You can override settings like `preprocessing.region.name`. |
+| `python main.py task=train` | Kickoff training. By default outputs runs to `./outputs/<date>/<time>`. |
+| `python main.py task=evaluate checkpoint=/path/to/my_model.pt` | Run spatial, continuous, and probabilistic metric validation on the held-out test data. |
+| `./scripts/check_all.sh` | Run all Linters, typecheck, and coverage reports at once. |
+| `mkdocs serve` | Host documentation locally mimicking github pages structure. |
+
+---
+
+## Testing
+
+Quality assurance is mandated globally via the Makefile/Shell scripts. We rely on `pytest`, `coverage`, `black`, `isort`, and `mypy`.
+
+### Running Tests
+
 ```bash
-python main.py task=evaluate checkpoint=outputs/my_run/best_model.pt
+# Run all automated tests (Minitest equivalent in Python)
+pytest tests/
+
+# Run tests with coverage map pointing at src/ainpp
+pytest --cov=src/ainpp tests/
+
+# Shortcut for linting, typing and testing standardly
+./scripts/check_all.sh
 ```
 
-#### Evaluation Metrics
--   **Continuous**: MSE, RMSE, MAE, R², Pearson Correlation.
--   **Categorical** (per threshold): POD, FAR, CSI (TS), ETS.
--   **Probabilistic**: CRPS, Reliability Diagrams.
+---
 
-## Project Structure (key parts)
-- `main.py` — unified Hydra CLI for preprocess/train/evaluate
-- `conf/` — configuration hierarchy
-- `src/ainpp/` — library code (datasets, models, preprocessing, evaluation, visualization)
-- `docs/` — MkDocs sources (API via mkdocstrings)
-- `scripts/` — supporting utilities (legacy entry points now superseded by `main.py`)
+## Training and Deployment in HPC Workspace
 
-## Data
-The dataset is expected to be in **Zarr** format with the following structure:
-- **Variables**: `gsmap_nrt`, `gsmap_mvk`
-- **Dimensions**: Time, Latitude, Longitude
-- **Splits**:
-  - Train: 2018-2022
-  - Validation: 2023
-  - Test: 2024
+The framework utilizes `torch.distributed` and is meant to be run transparently on massive multi-GPU or multi-Node bounds. 
+
+### Single Node, Multi GPU Deployment
+Run the process under `torchrun` and declare how many GPUs to map per node:
+
+```bash
+# Running DDP with 4 GPUs
+torchrun --nproc_per_node=4 main.py task=train dataset.train_loader.batch_size=16
+```
+*(Variables are aggregated per-batch across GPUs, keeping the effective batch-size as GPUs * node_batch_size).*
+
+### Compute / Checkpointing Rules
+- **Early Stopping**: Models monitor validation loss. If improvement ceases before parameter `patience`, training terminates.
+- **Checkpointing**: Every epoch emits a checkpoint, defaulting the minimum validation loss state to `best_model.pt`.
+
+---
+
+## Troubleshooting
+
+### ImportErrors on ainpp.*
+**Error**: `ModuleNotFoundError: No module named 'ainpp'`
+**Solution**: Ensure you actually installed the package into the current uv environment via the editable command.
+```bash
+uv pip install -e .
+```
+
+### CUDA out of memory
+**Error**: `torch.cuda.OutOfMemoryError / CUDA out of memory.`
+**Solution**: Drop the batch size or hidden dimensions through Hydra.
+```bash
+python main.py task=train dataset.train_loader.batch_size=4 model.hidden_channels=[16,16,16]
+```
+
+### Deadlocks in DistributedDataParallel
+**Error**: The system freezes on epoch conclusion or validation phases.
+**Solution**: DDP often hangs if the dataset isn't perfectly sliced, or if evaluation metrics attempt to reduce uneven tensors. Try lowering the number of workers per dataloader using `system.num_workers=0` for debug traces.
+
+## License
+
+This architecture operates under an MIT open-source license.
