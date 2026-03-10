@@ -1,6 +1,12 @@
-# AINPP Precipitation Benchmark
+<div align="center">
+  <img src="assets/GA_Almeida_etal_2026.jpg" alt="AINPP Precipitation Benchmark Cover" width="100%">
+  <br /> <br />
 
-Unified scientific benchmark library for precipitation nowcasting in Latin America using deep learning on high-performance computing (HPC) environments.
+  # AINPP Precipitation Benchmark
+
+  _Unified scientific benchmark library for precipitation nowcasting in Latin America using deep learning on high-performance computing (HPC) environments._
+  <br />
+</div>
 
 ## Key Features
 
@@ -234,6 +240,27 @@ python main.py task=train dataset.train_loader.batch_size=4 model.hidden_channel
 **Error**: The system freezes on epoch conclusion or validation phases.
 **Solution**: DDP often hangs if the dataset isn't perfectly sliced, or if evaluation metrics attempt to reduce uneven tensors. Try lowering the number of workers per dataloader using `system.num_workers=0` for debug traces.
 
+## Acknowledgements
+
+The authors wish to thank the National Council for Scientific and Technological Development (CNPq, processes 438310/2018-7, 141451/2021-1 and 444205/2024-1), the Brazilian Federal Agency for Support and Evaluation of Higher Education (CAPES), the National Institute for Space Research (INPE) and the Brazilian Space Agency (AEB) of the Ministry of Science, Technology and Innovation (MCTI) for their financial support. The project was supported by the \textit{Laboratório Nacional de Computação Científica} (LNCC, MCTI/Brazil) through the resources of the Santos Dumont supercomputer in the projects IDeepS and CPTEC. This work was also supported by the 4th Research Announcement on the Earth Observations of the Japan Aerospace Exploration Agency (JAXA) (ER4GPN102) and World Meteorological Organization (WMO).
+
 ## License
 
 This architecture operates under an MIT open-source license.
+
+## Citation
+
+If you use this benchmark in your research, please cite the following paper:
+
+```bibtex
+@article{almeida2026regional,
+  author  = {Almeida, Adriano P. and Barbosa, Henrique M. J. and Garcia, S{\^a}mia R. and Gagne, David J. and Zhou, Kanghui and Kubota, Takuji and Ushio, Tomoo and Otsuka, Shigenori and Pfreundschuh, Simon and Calheiros, Alan J. P.},
+  title   = {A Regional Benchmark for Deep Learning-Based Hourly Precipitation Nowcasting in Latin America},
+  journal = {IEEE Access},
+  year    = {2026},
+  volume  = {PP},
+  number  = {99},
+  pages   = {1--1},
+  doi     = {10.1109/ACCESS.2026.3670767}
+}
+```
