@@ -5,7 +5,6 @@ This section is auto-generated with `mkdocstrings`. Each domain module is docume
 ## Domains
 - Datasets: data loading and patch sampling.
 - Models: forecasting architectures.
-- Preprocessing: pipelines for GSMaP data.
 - Evaluation: metrics and evaluators.
 - Visualization: plotting utilities.
 

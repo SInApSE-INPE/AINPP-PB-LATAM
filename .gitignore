@@ -18,6 +18,8 @@ samples/**
 
 mlflow.db
 
+samples/
+
 # Environment & Secrets (AIOS)
 .env
 .env.local

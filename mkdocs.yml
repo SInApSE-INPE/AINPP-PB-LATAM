@@ -45,6 +45,5 @@ nav:
       - Overview: api.md
       - Datasets: api/datasets.md
       - Models: api/models.md
-      - Preprocessing: api/preprocessing.md
       - Evaluation: api/evaluation.md
       - Visualization: api/visualization.md

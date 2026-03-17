@@ -3,11 +3,6 @@
 ## CLI Entry Point
 The unified CLI lives at `main.py` and supports Hydra overrides for all tasks.
 
-### Preprocess
-```bash
-python main.py task=preprocess preprocessing.region.name=amazon-basin
-```
-
 ### Train
 ```bash
 python main.py task=train training.epochs=5 dataset.dataset.zarr_path=/path/to/zarr
