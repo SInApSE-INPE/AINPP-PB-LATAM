@@ -6,6 +6,7 @@ kernel_size: 7
 output_timesteps: 6
 
 task: train
+checkpoint: null
 
 
 defaults:
@@ -16,6 +17,7 @@ defaults:
   - dataset: gsmap
   - loss: hybrid_mse_ssim
   - inference: default
+  - evaluation: default
 
 system:
   num_workers: 4
