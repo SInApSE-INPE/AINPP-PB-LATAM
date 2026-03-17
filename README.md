@@ -2,6 +2,15 @@
   <img src="assets/GA_Almeida_etal_2026.jpg" alt="AINPP Precipitation Benchmark Cover" width="100%">
   <br /> <br />
 
+  [![DOI](https://img.shields.io/badge/DOI-10.1109%2FACCESS.2026.3670767-blue.svg)](https://doi.org/10.1109/ACCESS.2026.3670767)
+  ![Dataset](https://img.shields.io/badge/Dataset-Zarr-orange.svg)
+  [![Test](https://img.shields.io/github/actions/workflow/status/user/ainpp-pb-latam/test.yml?label=Test)](https://github.com/user/ainpp-pb-latam/actions)
+  [![PyPI](https://img.shields.io/pypi/v/ainpp-pb-latam)](https://pypi.org/project/ainpp-pb-latam/)
+  [![Version](https://img.shields.io/github/v/release/user/ainpp-pb-latam)](https://github.com/user/ainpp-pb-latam/releases)
+  ![Coverage](https://img.shields.io/badge/Coverage-100%25-brightgreen.svg)
+
+  <br />
+
   # AINPP Precipitation Benchmark
 
   _Unified scientific benchmark library for precipitation nowcasting in Latin America using deep learning on high-performance computing (HPC) environments._
@@ -10,7 +19,7 @@
 
 ## Key Features
 
-- **Extensive Model Zoo**: AFNO, ConvLSTM, GAN, Graph NN, InceptionV4, ResNet50, UNet, and Xception.
+- **Extensive Model Zoo**: AFNO, ConvLSTM, GAN, InceptionV4, ResNet50, UNet, and Xception.
 - **Scalable HPC Training**: Built-in support for Single GPU, Multi-GPU (Distributed Data Parallel), and Multi-Node clusters.
 - **Standardized Data Formats**: Optimized data loading and processing utilizing Zarr archives with daily/hourly grid matrices.
 - **Config-Driven Architecture**: Fully modular, parameterized via Hydra to completely decouple code from experiments.
@@ -108,7 +117,6 @@ The benchmark operates under strict spatio-temporal properties tailored for the 
 │   ├── evaluation/           # Evaluation metric definitions
 │   ├── loss/                 # Loss functions (e.g., mse, ssim)
 │   ├── model/                # Architecture configurations (unet, afno, etc.)
-│   ├── preprocessing/        # Data prep configurations
 │   ├── training/             # Optimizer, lr scheduler, epochs
 │   └── visualization/        # Plotting parameters
 ├── docs/                     # MkDocs documentation
@@ -119,9 +127,9 @@ The benchmark operates under strict spatio-temporal properties tailored for the 
 │   └── ainpp/                # Core Python package
 │       ├── datasets/         # Zarr loading and sampling logic
 │       ├── evaluation/       # Benchmark metric calculators
+│       ├── inference/        # Unified inference engine for single/historical predictions
 │       ├── layers/           # Reusable neural network layers
 │       ├── models/           # Model Zoo definitions (UNet, ResNet, etc.)
-│       ├── preprocessing/    # Data preparation pipelines
 │       ├── visualization/    # Handlers for model output plotting
 │       ├── distributed.py    # DDP sync rules for Multi-Node
 │       ├── engine.py         # Standard training loops
@@ -138,10 +146,10 @@ The benchmark operates under strict spatio-temporal properties tailored for the 
 
 1. You run `python main.py task=<TASK_TYPE>`.
 2. **Hydra** merges `conf/config.yaml` with the sub-dictionaries provided (loss, models, training parameters) and command-line overrides.
-3. Depending on the task (`preprocess`, `train`, `evaluate`):
+3. Depending on the task (`train`, `evaluate`, `infer`):
    - Initializes the Zarr Datasets via `ainpp.datasets`.
    - Compiles the Model defined in `conf/model/` and ships it to GPU (or configures `DistributedDataParallel`).
-   - Hooks into `ainpp.engine` or `ainpp.evaluation` and streams data until completion.
+   - Hooks into `ainpp.engine`, `ainpp.evaluation` or `ainpp.inference` and streams data until completion.
 
 ---
 
@@ -174,9 +182,10 @@ Run any stage via `main.py`.
 
 | Command | Description |
 |---|---|
-| `python main.py task=preprocess` | Run the standard dataset preprocessing algorithms. You can override settings like `preprocessing.region.name`. |
 | `python main.py task=train` | Kickoff training. By default outputs runs to `./outputs/<date>/<time>`. |
 | `python main.py task=evaluate checkpoint=/path/to/my_model.pt` | Run spatial, continuous, and probabilistic metric validation on the held-out test data. |
+| `python main.py task=infer inference.mode=single checkpoint=/my_model.pt` | Run prediction for a single isolated sample and output locally formatted as `.nc` (NetCDF) or `.pt`. |
+| `python main.py task=infer inference.mode=historical checkpoint=/my_model.pt` | Run bulk batch-by-batch predictions on the whole temporal set via Dataloader, saving cleanly optimized to a Zarr Store. |
 | `./scripts/check_all.sh` | Run all Linters, typecheck, and coverage reports at once. |
 | `mkdocs serve` | Host documentation locally mimicking github pages structure. |
 
