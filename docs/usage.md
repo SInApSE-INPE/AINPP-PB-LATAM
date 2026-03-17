@@ -18,5 +18,5 @@ python main.py task=evaluate checkpoint=outputs/checkpoint.pth
 - Compose configs from `conf/` using the `defaults` lists already defined.
 
 ## Tips
-- Use `HYDRA_FULL_ERROR=1` for detailed tracebacks.
+- Use `HYDRA_FULL_ERRORR=1` for detailed tracebacks.
 - Set `CUDA_VISIBLE_DEVICES` to control GPU selection.

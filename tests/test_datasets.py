@@ -1,7 +1,7 @@
 import pytest
 import torch
 
-from ainpp.datasets import AINPPPBLATAMDataset
+from ainpp_pb_latam.datasets import AINPPPBLATAMDataset
 
 
 def test_dataset_minimal_zarr(small_zarr):

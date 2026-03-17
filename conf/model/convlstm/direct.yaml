@@ -1,4 +1,4 @@
-_target_: ainpp.models.convlstm.forecaster.ConvLSTMMultiHorizon
+_target_: ainpp_pb_latam.models.convlstm.forecaster.ConvLSTMMultiHorizon
 
 input_channels: ${input_channels}
 hidden_channels: ${hidden_channels}

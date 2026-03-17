@@ -7,8 +7,8 @@ import torch.distributed as dist
 from omegaconf import DictConfig
 from torch.utils.data import DataLoader, DistributedSampler
 from hydra.utils import instantiate
-from ainpp.datasets import NowcastingDataset
-from ainpp.trainer import Trainer
+from ainpp_pb_latam.datasets import NowcastingDataset
+from ainpp_pb_latam.trainer import Trainer
 
 @hydra.main(config_path="../conf", config_name="config", version_base=None)
 def main(cfg: DictConfig):

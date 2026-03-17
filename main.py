@@ -12,16 +12,16 @@ from omegaconf import DictConfig, OmegaConf
 
 
 
-from ainpp.datasets import NowcastingDataset
-from ainpp.models import unet  # noqa: F401  # Ensure model modules are discoverable
-from ainpp.losses import HybridLoss  # noqa: F401
-from ainpp.engine import run_training
-from ainpp.utils import build_optimizer, build_loss
-from ainpp.visualization.samples import save_epoch_sample  # noqa: F401
-from ainpp.evaluation.evaluator import Evaluator
-from ainpp.inference import Inferencer
+from ainpp_pb_latam.datasets import NowcastingDataset
+from ainpp_pb_latam.models import unet  # noqa: F401  # Ensure model modules are discoverable
+from ainpp_pb_latam.losses import HybridLoss  # noqa: F401
+from ainpp_pb_latam.engine import run_training
+from ainpp_pb_latam.utils import build_optimizer, build_loss
+from ainpp_pb_latam.visualization.samples import save_epoch_sample  # noqa: F401
+from ainpp_pb_latam.evaluation.evaluator import Evaluator
+from ainpp_pb_latam.inference import Inferencer
 
-LOG = logging.getLogger("ainpp.cli")
+LOG = logging.getLogger("ainpp_pb_latam.cli")
 
 
 
@@ -117,7 +117,7 @@ def _run_evaluate(cfg: DictConfig) -> None:
     
     # Generate visualization figures Based on the aggregated dataframe
     vis_dir = cfg.get("visualization", {}).get("output_dir", "outputs/figures")
-    from ainpp.visualization.generate_figures import generate_benchmark_figures
+    from ainpp_pb_latam.visualization.generate_figures import generate_benchmark_figures
     generate_benchmark_figures(df_summary, vis_dir)
 
 
@@ -155,14 +155,14 @@ def _run_infer(cfg: DictConfig) -> None:
         ds_kwargs = cfg.dataset.overrides.get("test", {}) if cfg.dataset.get("overrides") else {}
         test_dataset = instantiate(cfg.dataset.dataset, **ds_kwargs)
         
-        # Pega fisicamente o primeiro shape compatível (depende de como o Dataset retorna)
+        # Physically gets the first compatible shape (depends on how Dataset returns)
         sample = test_dataset[0]
         if isinstance(sample, (list, tuple)):
             input_tensor = sample[0]
         else:
             input_tensor = sample
             
-        base_timestamp = "20260316_1200" # Exemplo hardcoded temporariamente para compatibilidade CLI
+        base_timestamp = "20260316_1200" # Hardcoded example temporarily for CLI compatibility
         inferencer.infer_single(input_tensor=input_tensor, base_timestamp=base_timestamp)
     else:
         raise ValueError(f"Inference mode {mode} not supported. Use 'historical' or 'single'.")

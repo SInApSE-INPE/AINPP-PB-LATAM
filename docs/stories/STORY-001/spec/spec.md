@@ -7,7 +7,7 @@
 ---
 
 ## 1. Goal
-Modernize the code structure into a standard scientific Python package named `ainpp`.
+Modernize the code structure into a standard scientific Python package named `ainpp-pb-latam`.
 
 ---
 
@@ -22,18 +22,18 @@ Modernize the code structure into a standard scientific Python package named `ai
 
 ## 3. Files to Create/Modify
 - **Create:** `pyproject.toml`
-- **Modify:** `src/` -> `src/ainpp/` (Move and rename)
+- **Modify:** `src/` -> `src/ainpp_pb_latam/` (Move and rename)
 - **Modify:** All Python files (Fix imports)
-- **Modify:** `src/ainpp/engine.py` (Refactor visualization)
+- **Modify:** `src/ainpp_pb_latam/engine.py` (Refactor visualization)
 - **Create:** `conf/dataset/gsmap.yaml`
-- **Modify:** `save_dataset.py` -> `src/ainpp/preprocessing/pipeline.py` (Refactor to class-based)
+- **Modify:** `save_dataset.py` -> `src/ainpp_pb_latam/preprocessing/pipeline.py` (Refactor to class-based)
 
 ---
 
 ## 4. Implementation Checklist
 - [ ] Initialize `pyproject.toml` with standard build-system and project metadata.
-- [ ] Migrate `src/` to `src/ainpp/` to support the SRC layout.
-- [ ] Recursively update all imports from `src.` to `ainpp.` or relative paths.
+- [ ] Migrate `src/` to `src/ainpp_pb_latam/` to support the SRC layout.
+- [ ] Recursively update all imports from `src.` to `ainpp_pb_latam.` or relative paths.
 - [ ] Remove all manual `sys.path.append` hacks in the codebase.
 - [ ] Decouple `save_epoch_sample` from `run_training` in `engine.py`.
 - [ ] Extract hardcoded GSMaP parameters into Hydra configuration files.

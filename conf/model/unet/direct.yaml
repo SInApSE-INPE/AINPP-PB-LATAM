@@ -1,4 +1,4 @@
-_target_: ainpp.models.unet.forecaster.UNetMultiHorizon
+_target_: ainpp_pb_latam.models.unet.forecaster.UNetMultiHorizon
 
 input_timesteps: ${input_timesteps}
 input_channels: 1

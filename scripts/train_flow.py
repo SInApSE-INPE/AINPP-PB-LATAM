@@ -19,8 +19,8 @@ import hydra
 from omegaconf import DictConfig
 
 
-from ainpp.distributed import setup_distributed, cleanup_distributed, is_main_process
-from ainpp.engine import run_training
+from ainpp_pb_latam.distributed import setup_distributed, cleanup_distributed, is_main_process
+from ainpp_pb_latam.engine import run_training
 
 
 def _configure_threading() -> None:

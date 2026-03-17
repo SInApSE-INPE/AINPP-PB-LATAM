@@ -35,12 +35,12 @@
 - [x] Create `mkdocs.yml` with basic project metadata and theme.
 - [x] Add `mkdocs-material` and `mkdocstrings` as dev dependencies in `pyproject.toml`.
 - [x] Initialize `docs/` with standard boilerplate pages.
-- [x] Use `mkdocstrings` in `docs/api.md` to reference all modules in `ainpp`.
+- [x] Use `mkdocstrings` in `docs/api.md` to reference all modules in `ainpp-pb-latam`.
 - [x] Verify local build with `mkdocs serve`.
-- [x] Ensure all docstrings in `ainpp/` meet Google-style standards.
+- [x] Ensure all docstrings in `ainpp_pb_latam/` meet Google-style standards.
 
 ## Dev Notes
-- Refer to `STORY-001` for the final module names in `ainpp`.
+- Refer to `STORY-001` for the final module names in `ainpp-pb-latam`.
 - Docstrings are already being standardized in STORY-001; this story focuses on the *rendering*.
 
 ## Dev Agent Record

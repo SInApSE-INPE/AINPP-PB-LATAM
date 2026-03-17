@@ -1,17 +1,17 @@
 #!/bin/bash
-# Script para testar rapidamente o treinamento com todos os modelos suportados (smoke test).
-# A intenção é validar se o pipeline roda sem quebrar (overriddings curtos).
+# Script to quickly test training with all supported models (smoke test).
+# Intention is to validate if pipeline runs without breaking (short overrides).
 
 set -e
 
-# Overrides padrão para um teste super rápido (1 época, batches mínimos)
+# Default overrides for a super fast test (1 epoch, minimal batches)
 FAST_OVERRIDES="training.epochs=1 dataset.train_loader.batch_size=2 dataset.val_loader.batch_size=2 dataset.overrides.train.steps_per_epoch=2 dataset.overrides.validation.steps_per_epoch=2 system.num_workers=0"
 
 echo "==================================================="
-echo "    Iniciando Teste Rápido de Todos os Modelos     "
+echo "    Starting Fast Test for All Models     "
 echo "==================================================="
 
-# Modelos padrão e a configuração equivalente no Hydra (conf/model/*)
+# Default models and the equivalent configuration in Hydra (conf/model/*)
 models=(
     "afno/direct"
     "convlstm/direct"
@@ -27,14 +27,14 @@ for model in "${models[@]}"; do
     if [[ "$model" == *"afno"* ]]; then
         EXTRA_FLAGS="+model.img_size=[320,320]"
     fi
-    echo ">> Testando Arquitetura: $model (Padrão Supervisionado)"
+    echo ">> Testing Architecture: $model (Supervised Standard)"
     uv run python main.py task=train model=$model training=default ~discriminator $FAST_OVERRIDES $EXTRA_FLAGS
 done
 
-# Para testar a GAN, o discriminator precisa estar ativado e o treino como gan
-echo ">> Testando Arquitetura: unet/direct (Adversarial/GAN)"
+# To test GAN, discriminator needs to be activated and training as gan
+echo ">> Testing Architecture: unet/direct (Adversarial/GAN)"
 uv run python main.py task=train model=unet/direct training=gan discriminator=patchgan $FAST_OVERRIDES
 
 echo "==================================================="
-echo "         Todos os testes foram concluídos!         "
+echo "         All tests have been completed!         "
 echo "==================================================="

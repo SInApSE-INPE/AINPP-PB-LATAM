@@ -19,8 +19,8 @@ import hydra
 from omegaconf import DictConfig
 
 
-from ainpp.distributed import setup_distributed, cleanup_distributed, is_main_process
-from ainpp.engine_gan import run_gan_training
+from ainpp_pb_latam.distributed import setup_distributed, cleanup_distributed, is_main_process
+from ainpp_pb_latam.engine_gan import run_gan_training
 
 
 def _configure_threading() -> None:
@@ -113,9 +113,9 @@ def main(cfg: DictConfig) -> None:
         opt_d = torch.optim.Adam(discriminator.parameters(), lr=cfg.training.lr_d, betas=(0.5, 0.999))
 
         # 3. Loss Functions
-        # L1 Loss para reconstrução (garante que chove no lugar certo)
+        # L1 Loss for reconstruction (ensures it rains in the right place)
         pixel_criterion = nn.L1Loss().to(device) 
-        # MSE Loss para LSGAN (Least Squares GAN é mais estável que BCE)
+        # MSE Loss for LSGAN (Least Squares GAN is more stable than BCE)
         gan_criterion = nn.MSELoss().to(device)    
 
         print("Initializing Training Engine...")
@@ -132,7 +132,7 @@ def main(cfg: DictConfig) -> None:
             epochs=cfg.training.epochs,
             pixel_criterion=pixel_criterion,
             gan_criterion=gan_criterion,
-            lambda_pixel=100.0, # Importante: Dá mais peso para a física do que para o realismo visual no início
+            lambda_pixel=100.0, # Important: Gives more weight to physics than to visual realism initially
             checkpoint_cfg=cfg.training.checkpoint,
             train_sampler=train_sampler
         )

@@ -10,7 +10,7 @@
 **so that** each component can be validated independently and regressions are caught early.
 
 ## Acceptance Criteria
-- [x] Every core module (`ainpp.*`) has dedicated unit tests covering happy path and key edge cases.
+- [x] Every core module (`ainpp_pb_latam.*`) has dedicated unit tests covering happy path and key edge cases.
 - [x] Tests run isolated (no shared mutable state, temp dirs/fixtures clean up automatically).
 - [x] Coverage threshold ≥ 80% overall and ≥ 70% per module enforced in CI.
 - [x] Fixtures live in `tests/conftest.py` and are reused (no duplicated setup code).

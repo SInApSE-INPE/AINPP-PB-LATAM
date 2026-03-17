@@ -124,7 +124,7 @@ The benchmark operates under strict spatio-temporal properties tailored for the 
 │   ├── check_all.sh          # Full quality-gate workflow
 │   └── enforce_coverage.py   # Coverage tools
 ├── src/
-│   └── ainpp/                # Core Python package
+│   └── ainpp_pb_latam/                # Core Python package
 │       ├── datasets/         # Zarr loading and sampling logic
 │       ├── evaluation/       # Orchestration & benchmark metric calculators applied per threshold/lead_time
 │       ├── metrics/          # Pure mathematical calculations agnostic of batch/dataset
@@ -190,9 +190,9 @@ You can utilize the highly optimized standalone packages on your custom predicti
 
 ```python
 import numpy as np
-from ainpp.metrics.continuous import ContinuousMetrics
-from ainpp.metrics.categorical import CategoricalMetrics
-from ainpp.visualization.plot_maps import plot_comparison
+from ainpp_pb_latam.metrics.continuous import ContinuousMetrics
+from ainpp_pb_latam.metrics.categorical import CategoricalMetrics
+from ainpp_pb_latam.visualization.plot_maps import plot_comparison
 
 target_map = np.random.rand(256, 256) * 15 # Synthetic observed mm/h
 pred_map = target_map * 0.8 + np.random.rand(256, 256) # Synthetic predicted mm/h
@@ -219,9 +219,9 @@ plot_comparison(
 1. You run `python main.py task=<TASK_TYPE>`.
 2. **Hydra** merges `conf/config.yaml` with the sub-dictionaries provided (loss, models, training parameters) and command-line overrides.
 3. Depending on the task (`train`, `evaluate`, `infer`):
-   - Initializes the Zarr Datasets via `ainpp.datasets`.
+   - Initializes the Zarr Datasets via `ainpp_pb_latam.datasets`.
    - Compiles the Model defined in `conf/model/` and ships it to GPU (or configures `DistributedDataParallel`).
-   - Hooks into `ainpp.engine`, `ainpp.evaluation` or `ainpp.inference` and streams data until completion.
+   - Hooks into `ainpp_pb_latam.engine`, `ainpp_pb_latam.evaluation` or `ainpp_pb_latam.inference` and streams data until completion.
 
 ---
 
@@ -273,8 +273,8 @@ Quality assurance is mandated globally via the Makefile/Shell scripts. We rely o
 # Run all automated tests (Minitest equivalent in Python)
 pytest tests/
 
-# Run tests with coverage map pointing at src/ainpp
-pytest --cov=src/ainpp tests/
+# Run tests with coverage map pointing at src/ainpp_pb_latam
+pytest --cov=src/ainpp_pb_latam tests/
 
 # Shortcut for linting, typing and testing standardly
 ./scripts/check_all.sh
@@ -303,8 +303,8 @@ torchrun --nproc_per_node=4 main.py task=train dataset.train_loader.batch_size=1
 
 ## Troubleshooting
 
-### ImportErrors on ainpp.*
-**Error**: `ModuleNotFoundError: No module named 'ainpp'`
+### ImportErrors on ainpp_pb_latam.*
+**Error**: `ModuleNotFoundError: No module named 'ainpp_pb_latam'`
 **Solution**: Ensure you actually installed the package into the current uv environment via the editable command.
 ```bash
 uv pip install -e .

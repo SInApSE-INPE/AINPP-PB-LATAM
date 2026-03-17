@@ -17,7 +17,7 @@ def main(path: str, threshold: float = THRESHOLD) -> int:
 
     for name, meta in files.items():
         percent = meta.get("summary", {}).get("percent_covered", 0.0)
-        if percent < threshold and "src/ainpp" in name.replace("\\", "/"):
+        if percent < threshold and "src/ainpp_pb_latam" in name.replace("\\", "/"):
             failures.append((name, percent))
 
     if failures:

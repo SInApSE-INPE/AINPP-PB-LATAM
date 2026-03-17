@@ -1,4 +1,4 @@
-::: ainpp.datasets
+::: ainpp_pb_latam.datasets
 handler: python
 options:
   docstring_style: google

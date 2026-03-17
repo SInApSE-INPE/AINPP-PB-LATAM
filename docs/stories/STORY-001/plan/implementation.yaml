@@ -29,13 +29,13 @@ phases:
         status: pending
 
       - id: "1.2"
-        description: "Migrate src/ directory to src/ainpp/ for proper SRC layout and installability."
+        description: "Migrate src/ directory to src/ainpp_pb_latam/ for proper SRC layout and installability."
         service: infra
         files:
-          - src/ainpp/
+          - src/ainpp_pb_latam/
         verification:
           type: command
-          command: "ls src/ainpp/__init__.py"
+          command: "ls src/ainpp_pb_latam/__init__.py"
         status: pending
 
   - id: phase-2
@@ -46,21 +46,21 @@ phases:
         description: "Update all project imports to use the new 'ainpp' namespace and remove sys.path hacks."
         service: backend
         files:
-          - src/ainpp/engine.py
-          - src/ainpp/datasets/gsmap.py
-          - src/ainpp/utils.py
+          - src/ainpp_pb_latam/engine.py
+          - src/ainpp_pb_latam/datasets/gsmap.py
+          - src/ainpp_pb_latam/utils.py
         verification:
           type: command
-          command: "python3 -m py_compile src/ainpp/*.py"
+          command: "python3 -m py_compile src/ainpp_pb_latam/*.py"
         status: pending
         dependencies: ["1.2"]
 
       - id: "2.2"
-        description: "Decouple training engine from visualization by moving save_epoch_sample to ainpp.visualization."
+        description: "Decouple training engine from visualization by moving save_epoch_sample to ainpp_pb_latam.visualization."
         service: backend
         files:
-          - src/ainpp/engine.py
-          - src/ainpp/visualization/samples.py
+          - src/ainpp_pb_latam/engine.py
+          - src/ainpp_pb_latam/visualization/samples.py
         verification:
           type: command
           command: "pytest tests/test_training.py"
@@ -82,10 +82,10 @@ phases:
         status: pending
 
       - id: "3.2"
-        description: "Refactor save_dataset.py into a reusable PreprocessingPipeline class in ainpp.preprocessing."
+        description: "Refactor save_dataset.py into a reusable PreprocessingPipeline class in ainpp_pb_latam.preprocessing."
         service: backend
         files:
-          - src/ainpp/preprocessing/pipeline.py
+          - src/ainpp_pb_latam/preprocessing/pipeline.py
         verification:
           type: command
           command: "pytest tests/test_preprocessing_module.py"
@@ -100,10 +100,10 @@ phases:
         description: "Standardize all docstrings to Google-style and ensure full type hint coverage in ainpp/core."
         service: backend
         files:
-          - src/ainpp/engine.py
-          - src/ainpp/utils.py
+          - src/ainpp_pb_latam/engine.py
+          - src/ainpp_pb_latam/utils.py
         verification:
           type: command
-          command: "mypy src/ainpp"
+          command: "mypy src/ainpp_pb_latam"
         status: pending
         dependencies: ["2.2"]

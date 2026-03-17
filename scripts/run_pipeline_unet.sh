@@ -1,24 +1,24 @@
 #!/bin/bash
 # ==============================================================================
-# Script de Automação de Pipeline Completo para UNet (5 Épocas)
-# Treinamento -> Inferência -> Avaliação (Métricas e Figuras)
+# Complete Pipeline Automation Script for UNet (5 Epochs)
+# Training -> Inference -> Evaluation (Metrics and Figures)
 # ==============================================================================
 
 set -e
 
-# Configuração do modelo e épocas
+# Model configuration and epochs
 MODEL_PATH="unet/direct"
 MODEL_CLEAN="unet_direct"
 EPOCHS=5
 
 echo "=========================================================="
-echo "    INICIANDO PIPELINE AINPP PARA MODELO UNET (${EPOCHS} ÉPOCAS)  "
+echo "    STARTING AINPP PIPELINE FOR UNET MODEL (${EPOCHS} EPOCHS)  "
 echo "=========================================================="
 
-# Diretório base de saídas
+# Base outputs directory
 BASE_DIR="$(pwd)/outputs/pipelines/${MODEL_CLEAN}"
 
-# Overrides fixos (mantendo configuração leve para testes locais, mas com 5 épocas)
+# Fixed overrides (keeping light configuration for local tests, but with 5 epochs)
 FAST_OVERRIDES="training.epochs=${EPOCHS} dataset.train_loader.batch_size=2 dataset.val_loader.batch_size=2 +dataset.overrides.test.steps_per_epoch=2 +dataset.overrides.test.group=test"
 TRAIN_OVERRIDES="model=${MODEL_PATH} training=default ~discriminator"
 
@@ -36,16 +36,16 @@ uv run python main.py task=train $TRAIN_OVERRIDES $FAST_OVERRIDES \
 CHECKPOINT_PATH="${BASE_DIR}/checkpoints/best_model.pt"
 
 if [ ! -f "$CHECKPOINT_PATH" ]; then
-    echo "ERRO: Checkpoint '${CHECKPOINT_PATH}' não gerado ou não atingido."
+    echo "ERROR: Checkpoint '${CHECKPOINT_PATH}' not generated or not reached."
     exit 1
 fi
 
 echo ""
 echo "=========================================================="
-echo ">> [2/3] INFERÊNCIA INDIVIDUAL: ${MODEL_PATH}"
+echo ">> [2/3] INDIVIDUAL INFERENCE: ${MODEL_PATH}"
 echo "=========================================================="
 
-# 2. Executa Inferência Single (Isolada, salva netcdf na pasta)
+# 2. Executes Single Inference (Isolated, saves netcdf in folder)
 uv run python main.py task=infer $TRAIN_OVERRIDES inference.mode=single \
     +checkpoint="${CHECKPOINT_PATH}" \
     inference.output_dir="${BASE_DIR}/inference" \
@@ -53,11 +53,11 @@ uv run python main.py task=infer $TRAIN_OVERRIDES inference.mode=single \
 
 echo ""
 echo "=========================================================="
-echo ">> [3/3] AVALIAÇÃO CIENTÍFICA (BENCHMARK): ${MODEL_PATH}"
-echo ">> Métricas e Geração Visual de Figuras"
+echo ">> [3/3] SCIENTIFIC EVALUATION (BENCHMARK): ${MODEL_PATH}"
+echo ">> Metrics and Visual Generation of Figures"
 echo "=========================================================="
 
-# 3. Executa Avaliação e Visualização
+# 3. Executes Evaluation and Visualization
 uv run python main.py task=evaluate $TRAIN_OVERRIDES \
     +checkpoint="${CHECKPOINT_PATH}" \
     +evaluation.output_dir="${BASE_DIR}/metrics" \
@@ -68,5 +68,5 @@ uv run python main.py task=evaluate $TRAIN_OVERRIDES \
 echo ""
 echo "=========================================================="
 echo "    PIPELINE UNET FINALIZADO COM SUCESSO!                 "
-echo "    Resultados (Métricas e Figuras) salvos em ${BASE_DIR}"
+echo "    Results (Metrics and Figures) saved in ${BASE_DIR}"
 echo "=========================================================="

@@ -1,4 +1,4 @@
-_target_: ainpp.models.resnet50.forecaster.ResNet50MultiHorizon
+_target_: ainpp_pb_latam.models.resnet50.forecaster.ResNet50MultiHorizon
 
 input_timesteps: ${input_timesteps}
 output_timesteps: ${output_timesteps}

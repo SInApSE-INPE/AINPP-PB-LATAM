@@ -10,7 +10,7 @@
 **so that** I can maintain high code quality and prevent regressions in scientific logic.
 
 ## Acceptance Criteria
-- [ ] All existing tests are refactored to use the new `ainpp` namespace.
+- [ ] All existing tests are refactored to use the new `ainpp-pb-latam` namespace.
 - [ ] Pytest is configured via `pyproject.toml` (or `pytest.ini`).
 - [ ] `pytest-cov` is integrated for code coverage reporting.
 - [ ] `flake8` and `mypy` configurations are added to `pyproject.toml`.
@@ -33,7 +33,7 @@
 - Proper exclusion patterns for static analysis (`mypy`, `flake8`).
 
 ## Tasks / Subtasks
-- [ ] Update imports in all files in `tests/` to use `ainpp`.
+- [ ] Update imports in all files in `tests/` to use `ainpp-pb-latam`.
 - [ ] Create `tests/conftest.py` with shared fixtures for small dataset and dummy model.
 - [ ] Configure `pytest`, `mypy`, and `flake8` in `pyproject.toml`.
 - [ ] Add a `check-all` command to the project (e.g., via a simple script or `make`).

@@ -1,4 +1,4 @@
-_target_: ainpp.models.unet.forecaster.UNetAutoRegressive
+_target_: ainpp_pb_latam.models.unet.forecaster.UNetAutoRegressive
 
 input_timesteps: 12
 input_channels: 1

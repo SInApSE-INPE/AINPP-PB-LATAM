@@ -7,13 +7,13 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
 import numpy as np
 import pandas as pd
-from ainpp.visualization.plot_metrics import (
+from ainpp_pb_latam.visualization.plot_metrics import (
     plot_performance_diagram,
     plot_reliability_diagram,
     plot_roc_curve
 )
-from ainpp.visualization.plot_maps import plot_comparison
-from ainpp.visualization.plot_advanced import (
+from ainpp_pb_latam.visualization.plot_maps import plot_comparison
+from ainpp_pb_latam.visualization.plot_advanced import (
     plot_barplots_and_rankings,
     plot_probability_histogram,
     plot_pr_curve,
@@ -22,7 +22,7 @@ from ainpp.visualization.plot_advanced import (
     plot_object_histograms,
     plot_statistical_consistency
 )
-from ainpp.visualization.generate_figures import generate_benchmark_figures
+from ainpp_pb_latam.visualization.generate_figures import generate_benchmark_figures
 
 def main():
     output_dir = Path(__file__).resolve().parents[1] / "outputs" / "dummy_figures"
@@ -59,7 +59,7 @@ def main():
     # Gerar figuras base (Curvas lead time, Taylor, Heatmaps, Performance Diagram global)
     generate_benchmark_figures(df_dummy, out_str)
     
-    # Comparação entre modelos: Rankings/Barplots
+    # Comparison between models: Rankings/Barplots
     plot_barplots_and_rankings(df_dummy, out_str, metric="RMSE")
     plot_barplots_and_rankings(df_dummy, out_str, metric="CSI")
 

@@ -1,4 +1,4 @@
-_target_: ainpp.models.afno.forecaster.AFNO2D
+_target_: ainpp_pb_latam.models.afno.forecaster.AFNO2D
 
 input_timesteps: ${input_timesteps}
 output_timesteps: ${output_timesteps}

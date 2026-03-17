@@ -34,13 +34,13 @@
 ## Tasks / Subtasks
 - [x] Define the base Hydra configuration in `conf/config.yaml`.
 - [x] Create `main.py` with the `@hydra.main` decorator.
-- [x] Implement task routing logic to call `ainpp.preprocessing.pipeline`, `ainpp.core.engine`, etc.
+- [x] Implement task routing logic to call `ainpp_pb_latam.preprocessing.pipeline`, `ainpp_pb_latam.core.engine`, etc.
 - [x] Ensure logging is unified via Hydra's logging configuration.
 - [x] Verify that all existing command-line functionality from `scripts/` is preserved.
 
 ## Dev Notes
 - Use `hydra.utils.instantiate` where possible to keep `main.py` clean.
-- Reference the new `ainpp` namespace created in STORY-001.
+- Reference the new `ainpp-pb-latam` namespace created in STORY-001.
 - Ensure compatibility with the `STORY-001` directory structure.
 
 ## Dev Agent Record
@@ -56,8 +56,8 @@
 ### File List
 - main.py
 - conf/config.yaml
-- src/ainpp/datasets/__init__.py
-- src/ainpp/utils.py
+- src/ainpp_pb_latam/datasets/__init__.py
+- src/ainpp_pb_latam/utils.py
 
 ### Change Log
 - Implemented Hydra-based CLI entry point with task routing and helper utilities.

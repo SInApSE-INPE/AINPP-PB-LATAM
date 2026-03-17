@@ -1,4 +1,4 @@
-::: ainpp.evaluation
+::: ainpp_pb_latam.evaluation
 handler: python
 options:
   docstring_style: google

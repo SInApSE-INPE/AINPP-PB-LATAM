@@ -1,12 +1,12 @@
 #!/bin/bash
 # ==============================================================================
-# Script de Automação de Pipeline Completo: Treinamento -> Inferência -> Avaliação
-# Para todos os modelos implementados na biblioteca AINPP-PB-LATAM
+# Complete Pipeline Automation Script: Training -> Inference -> Evaluation
+# For all models implemented in the library AINPP-PB-LATAM
 # ==============================================================================
 
 set -e
 
-# Modelos padrão e a configuração equivalente no Hydra
+# Default models and the equivalent configuration in Hydra
 models=(
     "afno/direct"
     "convlstm/direct"
@@ -18,13 +18,13 @@ models=(
     "xception/direct"
 )
 
-# Overrides fixos para forçar 5 épocas e processamento leve (para ambiente local se necessário)
-# Se for rodar numa máquina grande do Santos Dumont, remover os limits de batch.
+# Fixed overrides to force 5 epochs and light processing (for local environment if necessary)
+# If running in a large machine at Santos Dumont, remove batch limits.
 EPOCHS=2
 FAST_OVERRIDES="training.epochs=${EPOCHS} dataset.train_loader.batch_size=2 dataset.val_loader.batch_size=2 +dataset.overrides.test.steps_per_epoch=2 +dataset.overrides.test.group=test"
 
 echo "=========================================================="
-echo "    INICIANDO PIPELINES DE MODELOS AINPP (5 ÉPOCAS)       "
+echo "    STARTING AINPP MODEL PIPELINES (5 EPOCHS)       "
 echo "=========================================================="
 
 for model_path in "${models[@]}"; do
@@ -37,10 +37,10 @@ for model_path in "${models[@]}"; do
     echo ">> Destino: ${BASE_DIR}"
     echo "=========================================================="
     
-    # Tratativas extras baseadas na arquitetura do modelo
+    # Extra treatments based on model architecture
     EXTRA_FLAGS=""
     if [[ "$model_path" == *"afno"* ]]; then
-        # Correção de dimensionalidade exigida pelo ViT/AFNO
+        # Dimensionality correction required by ViT/AFNO
         EXTRA_FLAGS="+model.img_size=[320,320]"
     fi
     
@@ -59,17 +59,17 @@ for model_path in "${models[@]}"; do
     CHECKPOINT_PATH="${BASE_DIR}/checkpoints/best_model.pt"
     
     if [ ! -f "$CHECKPOINT_PATH" ]; then
-        echo "ERRO: Checkpoint '${CHECKPOINT_PATH}' não gerado ou não atingido."
-        # Pode continuar proximo modelo (continue) ou desabar o script
+        echo "ERROR: Checkpoint '${CHECKPOINT_PATH}' not generated or not reached."
+        # Can continue to next model (continue) or fall script
         continue
     fi
     
     echo ""
     echo "=========================================================="
-    echo ">> [2/3] INFERÊNCIA INDIVIDUAL: ${model_path}"
+    echo ">> [2/3] INDIVIDUAL INFERENCE: ${model_path}"
     echo "=========================================================="
     
-    # 2. Executa Inferência Single (Isolada, salva netcdf na pasta)
+    # 2. Executes Single Inference (Isolated, saves netcdf in folder)
     uv run python main.py task=infer $TRAIN_OVERRIDES inference.mode=single \
         +checkpoint="${CHECKPOINT_PATH}" \
         inference.output_dir="${BASE_DIR}/inference" \
@@ -78,7 +78,7 @@ for model_path in "${models[@]}"; do
         
     echo ""
     echo "=========================================================="
-    echo ">> [3/3] AVALIAÇÃO CIENTÍFICA (BENCHMARK): ${model_path}"
+    echo ">> [3/3] SCIENTIFIC EVALUATION (BENCHMARK): ${model_path}"
     echo "=========================================================="
     
     uv run python main.py task=evaluate $TRAIN_OVERRIDES \
@@ -88,7 +88,7 @@ for model_path in "${models[@]}"; do
         hydra.run.dir="${BASE_DIR}/eval_logs" \
         $FAST_OVERRIDES $EXTRA_FLAGS
         
-    echo "[CONCLUÍDO] Pipeline de ${MODEL_CLEAN} gerou todos os artefatos com sucesso!"
+    echo "[COMPLETED] Pipeline de ${MODEL_CLEAN} successfully generated all artifacts!"
 done
 
 echo "=========================================================="

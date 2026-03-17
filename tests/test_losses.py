@@ -1,7 +1,7 @@
 import torch
 import pytest
 
-from ainpp.losses import HybridLoss, LogCoshLoss, SSIMLoss, WeightedMSELoss
+from ainpp_pb_latam.losses import HybridLoss, LogCoshLoss, SSIMLoss, WeightedMSELoss
 
 
 def test_weighted_mse_increases_loss_when_target_high(tensor_pair):

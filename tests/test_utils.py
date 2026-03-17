@@ -1,8 +1,8 @@
 import torch
 import pytest
 
-from ainpp.utils import EarlyStopping, build_optimizer
-from ainpp._utils.standardization import LogZScoreStandardizer
+from ainpp_pb_latam.utils import EarlyStopping, build_optimizer
+from ainpp_pb_latam._utils.standardization import LogZScoreStandardizer
 
 
 class _ToyModel(torch.nn.Module):

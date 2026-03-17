@@ -1,3 +1,3 @@
-_target_: ainpp.losses.WeightedMSELoss
+_target_: ainpp_pb_latam.losses.WeightedMSELoss
 alpha: 5.0
 threshold: 0.1

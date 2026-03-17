@@ -1,1 +1,1 @@
-_target_: ainpp.losses.HuberLoss
+_target_: ainpp_pb_latam.losses.HuberLoss

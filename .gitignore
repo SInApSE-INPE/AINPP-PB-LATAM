@@ -47,3 +47,7 @@ Thumbs.db
 .aios-core/local/
 .claude/settings.local.json
 .aios/install-log.txt
+
+.github/agents/
+src/ainpp_pb_latam.egg-info/
+src/ainpp_pb_latam.egg-info/**

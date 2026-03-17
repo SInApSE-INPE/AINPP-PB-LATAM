@@ -5,9 +5,9 @@ from omegaconf import DictConfig, OmegaConf
 
 
 
-from ainpp.datasets import NowcastingDataset
-from ainpp.evaluation.evaluator import Evaluator
-from ainpp._utils.standardization import LogZScoreStandardizer
+from ainpp_pb_latam.datasets import NowcastingDataset
+from ainpp_pb_latam.evaluation.evaluator import Evaluator
+from ainpp_pb_latam._utils.standardization import LogZScoreStandardizer
 from hydra.utils import instantiate
 
 @hydra.main(config_path="../conf", config_name="config", version_base=None)

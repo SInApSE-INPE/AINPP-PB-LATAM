@@ -1,66 +1,110 @@
 [build-system]
-requires = ["setuptools>=61.0", "wheel"]
+requires = ["setuptools>=68", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "ainpp"
-version = "0.1.0"
-description = "Nowcasting Benchmark for Latin America"
+name = "ainpp-pb-latam"
+version = "1.0.0b2"
+description = "The Artificial Intelligence for Nowcasting Pilot Project - Precipitation Benchmark for Latin America (AINPP-PB-LATAM)"
 readme = "README.md"
-requires-python = ">=3.8"
-license = {text = "MIT"}
+requires-python = ">=3.10"
+license = { text = "MIT" }
+
+authors = [
+    { name = "Adriano P. Almeida", email = "adriano.almeida@inpe.br" },
+    { name = "Henrique M. J. Barbosa", email = "hbarbosa@umbc.edu" },
+    { name = "Sâmia R. Garcia", email = "samia.garcia@unifesp.br" },
+    { name = "David J. Gagne", email = "dgagne@ucar.edu" },
+    { name = "Kanghui Zhou", email = "zhoukh@cma.gov.cn" },
+    { name = "Takuji Kubota", email = "kubota.takuji@jaxa.jp" },
+    { name = "Tomoo Ushio", email = "ushio@eei.eng.osaka-u.ac.jp" },
+    { name = "Shigenori Otsuka", email = "shigenori.otsuka@riken.jp" },
+    { name = "Simon Pfreundschuh", email = "Simon.Pfreundschuh@colostate.edu" },
+    { name = "Alan J. P. Calheiros", email = "alan.calheiros@inpe.br" },
+]
+
+keywords = [
+    "nowcasting",
+    "precipitation",
+    "benchmark",
+    "deep-learning",
+    "latin-america",
+    "meteorology",
+    "remote-sensing",
+]
+
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering",
+    "Topic :: Scientific/Engineering :: Atmospheric Science",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
+
 dependencies = [
-    "torch",
-    "torchvision",
-    "zarr",
-    "hydra-core",
-    "omegaconf",
-    "mlflow",
-    "pandas",
-    "tqdm",
-    "scikit-learn",
-    "matplotlib",
-    "seaborn",
-    "scipy",
-    "xarray",
-    "dask",
-    "timm",
-    "numpy",
+    "dask>=2024.1.0",
+    "hydra-core>=1.3",
+    "matplotlib>=3.7",
+    "mlflow>=2.8",
+    "numpy>=1.24",
+    "omegaconf>=2.3",
+    "pandas>=2.0",
+    "scikit-learn>=1.3",
+    "scipy>=1.10",
+    "seaborn>=0.13",
+    "timm>=0.9",
+    "torch>=2.2",
+    "torchvision>=0.17",
+    "tqdm>=4.66",
+    "xarray>=2024.1.0",
+    "zarr>=2.17",
 ]
 
 [project.optional-dependencies]
 dev = [
-    "pytest",
-    "pytest-cov",
-    "coverage",
-    "black",
-    "isort",
-    "mypy",
+    "black>=24.0",
+    "coverage>=7.0",
+    "isort>=5.13",
+    "mypy>=1.8",
+    "pytest>=8.0",
+    "pytest-cov>=5.0",
 ]
 docs = [
     "mkdocs>=1.5",
+    "mkdocs-gen-files>=0.5",
     "mkdocs-material>=9.5",
     "mkdocstrings>=0.24",
     "mkdocstrings-python>=1.8",
-    "mkdocs-gen-files>=0.5",
 ]
 
+[project.urls]
+Homepage = "https://www.ainpp.org/latin_america.html"
+Repository = "https://github.com/SINApSE-INPE/AINPP-PB-LATAM"
+Documentation = "https://your-user.github.io/ainpp-pb-latam"
+Issues = "https://github.com/SInApSE-INPE/AINPP-PB-LATAM/issues"
+
 [tool.setuptools]
-package-dir = {"" = "src"}
+package-dir = { "" = "src" }
 
 [tool.setuptools.packages.find]
 where = ["src"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-addopts = "--cov=src/ainpp --cov-report=term-missing --cov-report=json:coverage.json --cov-branch"
+addopts = "--cov=ainpp_pb_latam --cov-report=term-missing --cov-report=json:coverage.json --cov-branch"
 markers = [
     "integration: marks tests as integration (deselect with '-m \"not integration\"')",
 ]
 
 [tool.coverage.run]
 branch = true
-source = ["src/ainpp"]
+source = ["ainpp_pb_latam"]
 
 [tool.coverage.report]
 fail_under = 10
@@ -77,6 +121,7 @@ target-version = ["py310"]
 
 [tool.isort]
 profile = "black"
+line_length = 100
 
 [tool.mypy]
 python_version = "3.10"

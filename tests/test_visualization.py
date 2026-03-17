@@ -1,6 +1,6 @@
 import numpy as np
 
-from ainpp.visualization.plot_metrics import plot_reliability_diagram, plot_roc_curve
+from ainpp_pb_latam.visualization.plot_metrics import plot_reliability_diagram, plot_roc_curve
 
 
 def test_reliability_and_roc_outputs(tmp_path):
