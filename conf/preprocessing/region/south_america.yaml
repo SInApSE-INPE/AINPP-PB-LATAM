@@ -1,7 +1,0 @@
-name: south-america
-lat_range: [-55, 13]
-lon_range: [-83, -33]
-dims: [680, 500]
-chunks:
-  lat: 340
-  lon: 250

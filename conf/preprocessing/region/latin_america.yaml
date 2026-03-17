@@ -1,7 +1,0 @@
-name: latin-america
-lat_range: [-55, 33]
-lon_range: [-120, -23]
-dims: [880, 970]
-chunks:
-  lat: 440
-  lon: 485

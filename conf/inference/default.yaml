@@ -1,0 +1,18 @@
+# conf/inference/default.yaml
+
+output_dir: "outputs/inference"
+batch_size: 16
+
+# Modos suportados: 'single' (uma amostra) ou 'historical' (lote/dataset)
+mode: "historical"
+
+# Histórico / Bulk configuration
+historical:
+  output_format: "zarr"
+  zarr_store: "${inference.output_dir}/predictions.zarr"
+
+# Single sample configuration
+single:
+  output_format: "nc" # netcdf or pt
+  output_dir: "${inference.output_dir}/single"
+

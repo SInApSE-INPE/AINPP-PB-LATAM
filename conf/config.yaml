@@ -15,6 +15,7 @@ defaults:
   - training: gan
   - dataset: gsmap
   - loss: hybrid_mse_ssim
+  - inference: default
 
 system:
   num_workers: 4
