@@ -126,11 +126,13 @@ The benchmark operates under strict spatio-temporal properties tailored for the 
 ├── src/
 │   └── ainpp/                # Core Python package
 │       ├── datasets/         # Zarr loading and sampling logic
-│       ├── evaluation/       # Benchmark metric calculators
+│       ├── evaluation/       # Orchestration & benchmark metric calculators applied per threshold/lead_time
+│       ├── metrics/          # Pure mathematical calculations agnostic of batch/dataset
+│       ├── aggregation/      # Statistical grouping and Tidy dataframe formatting (CSV/Parquet)
+│       ├── visualization/    # Handlers for model output plotting (Curves, Diagrams, Maps)
 │       ├── inference/        # Unified inference engine for single/historical predictions
 │       ├── layers/           # Reusable neural network layers
 │       ├── models/           # Model Zoo definitions (UNet, ResNet, etc.)
-│       ├── visualization/    # Handlers for model output plotting
 │       ├── distributed.py    # DDP sync rules for Multi-Node
 │       ├── engine.py         # Standard training loops
 │       ├── engine_gan.py     # specialized loops for GAN-based setups
@@ -140,6 +142,76 @@ The benchmark operates under strict spatio-temporal properties tailored for the 
 ├── main.py                   # Unified CLI Entry point
 ├── pyproject.toml            # Build system definitions
 └── uv.lock                   # Deterministic python dependency tree
+```
+
+### Evaluation & Metrics Workflow
+
+The library features rigorously separated pipelines for scientific benchmark evaluation. The architecture divides concerns as follows:
+
+1. **`metrics/`**: Computes pure mathematical metrics. Subdivided into 6 categories based on standard precipitation forecasting properties:
+   - **Categorical** (*POD, FAR, CSI, ETS, FSS*)
+   - **Continuous** (*MAE, RMSE, ME, Pearson Correlation*)
+   - **Probabilistic** (*Brier Score, ROC-AUC, CRPS*)
+   - **Object-Based** (*Object CSI, centroid distance for convective cells*)
+   - **Sharpness / Blur** (*SSIM, Total Variation, PSD*)
+   - **Consistency** (*Wasserstein distance, Exceedance curves*)
+2. **`evaluation/`**: Orchestrates and maps the raw output target against the thresholds (`mm/h`) and temporal prediction horizons (`lead_time`).
+3. **`aggregation/`**: Consolidates statistical properties from the evaluation bounds and builds Tidy long dataframes exportable to both `CSV` and `Parquet`.
+4. **`visualization/`**: Generates diagnostic visual figures over the aggregated benchmark sets directly into the `outputs/figures` directories. Supported plots are:
+   - Error & Lead Time continuous curves
+   - Performance and Taylor Diagrams
+   - Model Ranking grids and Heatmaps
+   - CDFs, Histogram Distribution mapping and Spatiotemporal spectral visuals.
+
+### Using the Evaluation Modules
+
+The benchmark evaluation generates metrics and plots automatically, but gives you total control via the CLI or Python API.
+
+#### Running standard evaluation
+Execute the unified evaluation over your best model checkpoint:
+```bash
+python main.py task=evaluate checkpoint=outputs/pipelines/unet_direct/checkpoints/best_model.pt
+```
+
+#### Customizing parameters via Hydra
+Overwrite constraints seamlessly to test custom thresholds (e.g., severe storms) or ignore specific modules to speed up processing:
+```bash
+python main.py task=evaluate \
+  model=unet/direct \
+  checkpoint=outputs/my_model.pt \
+  +evaluation.thresholds_mm_h=[5.0, 10.0, 25.0] \
+  +evaluation.lead_times_min=[10, 30, 60] \
+  +evaluation.probabilistic=false \  # Turn off probabilistic evaluation
+  +visualization.output_dir=/custom/plot/path
+```
+
+#### Calling metrics and visualization dynamically
+You can utilize the highly optimized standalone packages on your custom prediction loops or notebooks without the Hydra wrapper:
+
+```python
+import numpy as np
+from ainpp.metrics.continuous import ContinuousMetrics
+from ainpp.metrics.categorical import CategoricalMetrics
+from ainpp.visualization.plot_maps import plot_comparison
+
+target_map = np.random.rand(256, 256) * 15 # Synthetic observed mm/h
+pred_map = target_map * 0.8 + np.random.rand(256, 256) # Synthetic predicted mm/h
+
+# 1. Compute Math metrics agnostic to thresholds
+cont_metrics = ContinuousMetrics.compute(pred_map, target_map)
+print(f"RMSE: {cont_metrics['RMSE']:.2f}")
+
+# 2. Compute Categorical metrics for heavy rain (> 10mm/h)
+cat_metrics = CategoricalMetrics.compute(pred_map, target_map, threshold=10.0)
+print(f"CSI (Threat Score): {cat_metrics['CSI']}")
+
+# 3. Export sharp comparison maps
+plot_comparison(
+    target=target_map, 
+    prediction=pred_map, 
+    output_path="comparison_maps.png", 
+    title="Heavy Rain Analysis"
+)
 ```
 
 ### Request Lifecycle
