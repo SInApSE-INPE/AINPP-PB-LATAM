@@ -1,43 +1,84 @@
-import torch
+from pathlib import Path
+
 import pytest
+import torch
 
 from ainpp_pb_latam.utils import EarlyStopping, build_optimizer
 from ainpp_pb_latam._utils.standardization import LogZScoreStandardizer
 
 
 class _ToyModel(torch.nn.Module):
-    def __init__(self):
+    """A minimal neural network model for testing utility functions."""
+    def __init__(self) -> None:
         super().__init__()
         self.linear = torch.nn.Linear(2, 1)
 
-    def forward(self, x):
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
         return self.linear(x)
 
 
-def test_early_stopping_triggers(tmp_path):
-    model = _ToyModel()
-    checkpoint = tmp_path / "best.pt"
-    stopper = EarlyStopping(patience=2, delta=0.0, path=checkpoint, enabled=True)
+class TestEarlyStopping:
+    """Test suite for the EarlyStopping model regularizer."""
 
-    stopper(1.0, model)  # baseline
-    stopper(0.9, model)  # improvement saves checkpoint
-    assert checkpoint.exists()
+    def test_early_stopping_triggers_correctly(self, tmp_path: Path) -> None:
+        """Test that EarlyStopping saves models on improvement and halts on stale training."""
+        # Arrange
+        model = _ToyModel()
+        checkpoint = tmp_path / "best.pt"
+        stopper = EarlyStopping(patience=2, delta=0.0, path=checkpoint, enabled=True)
 
-    stopper(1.0, model)  # worse (1)
-    stopper(1.1, model)  # worse (2) -> should stop
-    assert stopper.early_stop
+        # Act & Assert
+        # Baseline score
+        stopper(1.0, model)
+        assert not stopper.early_stop
+        
+        # Improvement saves checkpoint
+        stopper(0.9, model)
+        assert checkpoint.exists()
+        assert not stopper.early_stop
+
+        # Worse score (delay 1)
+        stopper(1.0, model)
+        assert not stopper.early_stop
+        
+        # Worse score (delay 2), should trigger early stopping
+        stopper(1.1, model)
+        assert stopper.early_stop
 
 
-def test_build_optimizer_respects_lr():
-    model = _ToyModel()
-    cfg = {"lr": 0.005}
-    opt = build_optimizer(model.parameters(), cfg)
-    assert opt.defaults["lr"] == cfg["lr"]
+class TestOptimizerBuilder:
+    """Test suite for the dynamic optimizer builder utility."""
+
+    @pytest.mark.parametrize("lr", [0.005, 0.01, 1e-4])
+    def test_build_optimizer_respects_learning_rate(self, lr: float) -> None:
+        """Test that building an optimizer utilizes the configured learning rate."""
+        # Arrange
+        model = _ToyModel()
+        cfg = {"lr": lr}
+        
+        # Act
+        opt = build_optimizer(model.parameters(), cfg)
+        
+        # Assert
+        assert opt.defaults["lr"] == pytest.approx(lr)
 
 
-def test_log_zscore_roundtrip():
-    std = LogZScoreStandardizer(mean_log=1.0, std_log=0.5)
-    values = std.transform([0.0, 1.0, 2.0])
-    recovered = std.inverse_transform(values)
-    assert recovered.shape == values.shape
-    assert recovered[0] == pytest.approx(0.0, rel=1e-6, abs=1e-6)
+class TestStandardization:
+    """Test suite for the data standardizers."""
+
+    @pytest.mark.parametrize("values", [[0.0, 1.0, 2.0], [0.5, 3.14, 2.71]])
+
+    def test_log_zscore_roundtrip(self, values: list[float]) -> None:
+        """Test that LogZScoreStandardizer preserves values through forward/inverse transformation."""
+        # Arrange
+        std = LogZScoreStandardizer(mean_log=1.0, std_log=0.5)
+        
+        # Act
+        transformed = std.transform(values)
+        recovered = std.inverse_transform(transformed)
+        
+        # Assert
+        assert recovered.shape == transformed.shape
+        # Use np.testing or pytest.approx to check element-wise arrays easily
+        for rec, val in zip(recovered, values):
+            assert rec == pytest.approx(val, rel=1e-5, abs=1e-5)

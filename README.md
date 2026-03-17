@@ -4,9 +4,9 @@
 
   [![DOI](https://img.shields.io/badge/DOI-10.1109%2FACCESS.2026.3670767-blue.svg)](https://doi.org/10.1109/ACCESS.2026.3670767)
   ![Dataset](https://img.shields.io/badge/Dataset-Zarr-orange.svg)
-  [![Test](https://img.shields.io/github/actions/workflow/status/user/ainpp-pb-latam/test.yml?label=Test)](https://github.com/user/ainpp-pb-latam/actions)
+  [![Test](https://img.shields.io/github/actions/workflow/status/SInApSE-INPE/AINPP-PB-LATAM/ci.yml?branch=main&label=Test)](https://github.com/SInApSE-INPE/AINPP-PB-LATAM/actions/workflows/ci.yml)
   [![PyPI](https://img.shields.io/pypi/v/ainpp-pb-latam)](https://pypi.org/project/ainpp-pb-latam/)
-  [![Version](https://img.shields.io/github/v/release/user/ainpp-pb-latam)](https://github.com/user/ainpp-pb-latam/releases)
+  [![Version](https://img.shields.io/github/v/release/SInApSE-INPE/AINPP-PB-LATAM)](https://github.com/SInApSE-INPE/AINPP-PB-LATAM/releases)
   ![Coverage](https://img.shields.io/badge/Coverage-100%25-brightgreen.svg)
 
   <br />
