@@ -43,6 +43,7 @@ markdown_extensions:
 nav:
   - Home: index.md
   - Installation: installation.md
+  - Architecture: architecture.md
   - Usage: usage.md
   - Publishing: publishing.md
   - API:

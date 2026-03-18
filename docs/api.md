@@ -1,11 +1,12 @@
 # API Reference
 
-This section is auto-generated with `mkdocstrings`. Each domain module is documented separately for clarity.
+This section is generated with `mkdocstrings` and reflects the installed Python package.
 
 ## Domains
-- Datasets: data loading and patch sampling.
-- Models: forecasting architectures.
-- Evaluation: metrics and evaluators.
-- Visualization: plotting utilities.
 
-See the subpages in the navigation for module-level details.
+- `Datasets`: data access and benchmark-ready dataset interfaces
+- `Models`: forecasting architectures and model namespaces
+- `Evaluation`: evaluation orchestration and benchmark logic
+- `Visualization`: figure generation for scientific diagnostics
+
+The API pages are most useful when module docstrings and public object docstrings are kept current in `src/ainpp_pb_latam/`.
