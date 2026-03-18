@@ -11,6 +11,9 @@ theme:
     - navigation.tabs
     - navigation.instant
     - toc.integrate
+    - content.code.copy
+    - content.code.annotate
+    - content.tabs.link
   palette:
     - scheme: default
       primary: blue
@@ -35,9 +38,15 @@ markdown_extensions:
   - admonition
   - toc:
       permalink: true
-  - pymdownx.highlight
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
   - pymdownx.superfences
-  - pymdownx.tabbed
+  - pymdownx.tabbed:
+      alternate_style: true
   - pymdownx.details
 
 nav:
