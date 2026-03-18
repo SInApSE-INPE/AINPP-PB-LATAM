@@ -1,6 +1,9 @@
 site_name: AINPP Precipitation Benchmark
 site_description: Automated documentation for the AINPP precipitation nowcasting project.
-repo_url: ""
+site_url: https://sinapse-inpe.github.io/AINPP-PB-LATAM/
+repo_url: https://github.com/SInApSE-INPE/AINPP-PB-LATAM
+repo_name: SInApSE-INPE/AINPP-PB-LATAM
+edit_uri: edit/main/docs/
 docs_dir: docs
 theme:
   name: material
@@ -41,6 +44,7 @@ nav:
   - Home: index.md
   - Installation: installation.md
   - Usage: usage.md
+  - Publishing: publishing.md
   - API:
       - Overview: api.md
       - Datasets: api/datasets.md
