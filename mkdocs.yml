@@ -53,6 +53,7 @@ nav:
   - Home: index.md
   - Installation: installation.md
   - Architecture: architecture.md
+  - Training: training.md
   - Usage: usage.md
   - Publishing: publishing.md
   - API:

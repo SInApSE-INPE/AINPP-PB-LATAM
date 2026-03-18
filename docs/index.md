@@ -28,6 +28,7 @@ These assumptions are represented in the configuration layer and can be extended
 
 - `Installation`: environment creation and dependency installation with `uv`
 - `Architecture`: project structure, configuration model, and scientific pipeline
+- `Training`: model-by-model training guide, Hydra overrides, dataset tuning, and loss selection
 - `Usage`: how to run train, evaluate, and infer tasks through Hydra
 - `Publishing`: how the documentation site is deployed to GitHub Pages
 - `API`: package reference generated with `mkdocstrings`
