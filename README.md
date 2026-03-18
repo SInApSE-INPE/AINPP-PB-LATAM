@@ -52,8 +52,8 @@
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/user/ainpp-pb-latam.git
-cd ainpp-pb-latam
+git clone git@github.com:SInApSE-INPE/AINPP-PB-LATAM.git
+cd AINPP-PB-LATAM
 ```
 
 ### 2. Set Up the Environment
