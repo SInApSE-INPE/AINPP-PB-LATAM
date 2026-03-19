@@ -20,7 +20,6 @@ from ainpp_pb_latam.visualization.samples import save_epoch_sample  # noqa: F401
 # Ensure you have run: uv pip install -e .
 
 
-
 LOG = logging.getLogger("ainpp_pb_latam.cli")
 
 
