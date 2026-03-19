@@ -7,7 +7,7 @@ import numpy as np
 import pytest
 import torch
 import zarr
-from zarr.storage import DirectoryStore
+from zarr.storage import LocalStore
 
 
 @pytest.fixture(autouse=True)
@@ -56,7 +56,7 @@ def small_zarr(tmp_path: Path) -> Path:
     data_out = np.random.rand(len(time), len(lat), len(lon)).astype(np.float32)
 
     zarr_path = tmp_path / "gsmap_small.zarr"
-    store = DirectoryStore(str(zarr_path))
+    store = LocalStore(str(zarr_path))
 
     for group in ("train", "validation", "test"):
         g = zarr.group(store=store, path=group, overwrite=True)
