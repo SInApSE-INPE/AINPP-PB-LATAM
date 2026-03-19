@@ -28,14 +28,14 @@ class UNet2D(nn.Module):
         self.kernel_size = kernel_size
         self.bilinear = bilinear
         self._validate_cfg()
-        
+
         # Adjustment to bilinear
         features = list(features)
         if bilinear:
             features[-1] = features[-1] // 2
 
         self.stem = DoubleConv(in_channels, features[0], kernel_size=kernel_size)
-        
+
         # Encoder
         self.down = nn.ModuleList()
         for i in range(len(features) - 1):
@@ -44,10 +44,15 @@ class UNet2D(nn.Module):
         # Decoder
         self.up = nn.ModuleList()
         for i in range(len(features) - 1, 0, -1):
-            self.up.append(UpBlock(
-                features[i], features[i - 1], features[i - 1], 
-                kernel_size=kernel_size, bilinear=bilinear
-            ))
+            self.up.append(
+                UpBlock(
+                    features[i],
+                    features[i - 1],
+                    features[i - 1],
+                    kernel_size=kernel_size,
+                    bilinear=bilinear,
+                )
+            )
 
         self.head = nn.Conv2d(features[0], out_channels, kernel_size=1)
 

@@ -2,6 +2,7 @@ import ast
 import os
 import sys
 
+
 def get_imports(directory):
     modules = set()
     for root, _, files in os.walk(directory):
@@ -21,13 +22,14 @@ def get_imports(directory):
                         pass
     return modules
 
+
 def main():
     proj_dir = sys.argv[1]
     modules = set()
     modules.update(get_imports(os.path.join(proj_dir, "src")))
     modules.update(get_imports(os.path.join(proj_dir, "scripts")))
     modules.update(get_imports(os.path.join(proj_dir, "tests")))
-    
+
     # Check root level .py files too
     for f in os.listdir(proj_dir):
         if f.endswith(".py"):
@@ -44,10 +46,26 @@ def main():
             except:
                 pass
 
-    stdlib = set(sys.builtin_module_names) | {"sys", "os", "pathlib", "logging", "typing", "collections", "datetime", "math", "multiprocessing", "argparse", "warnings", "shutil", "traceback", "json"}
-    
+    stdlib = set(sys.builtin_module_names) | {
+        "sys",
+        "os",
+        "pathlib",
+        "logging",
+        "typing",
+        "collections",
+        "datetime",
+        "math",
+        "multiprocessing",
+        "argparse",
+        "warnings",
+        "shutil",
+        "traceback",
+        "json",
+    }
+
     external = sorted(list(modules - stdlib - {"ainpp"}))
     print(external)
+
 
 if __name__ == "__main__":
     main()

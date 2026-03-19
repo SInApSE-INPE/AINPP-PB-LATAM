@@ -15,6 +15,7 @@ import torch.nn as nn
 
 logger = logging.getLogger(__name__)
 
+
 class PatchDiscriminator3D(nn.Module):
     """
     3D PatchGAN Discriminator.
@@ -29,11 +30,7 @@ class PatchDiscriminator3D(nn.Module):
     """
 
     def __init__(
-        self,
-        input_channels: int = 1,
-        ndf: int = 64,
-        n_layers: int = 3,
-        norm_type: str = "instance"
+        self, input_channels: int = 1, ndf: int = 64, n_layers: int = 3, norm_type: str = "instance"
     ):
         """
         Args:
@@ -48,43 +45,55 @@ class PatchDiscriminator3D(nn.Module):
             norm_layer = nn.BatchNorm3d
         else:
             norm_layer = partial(nn.InstanceNorm3d, affine=True)
-        
+
         # 1. Input Layer (No Norm)
         # Kernel: (Time=4, H=4, W=4), Stride: (2, 2, 2)
         kw = 4
         padw = 1
         sequence = [
             nn.Conv3d(input_channels, ndf, kernel_size=kw, stride=2, padding=padw),
-            nn.LeakyReLU(0.2, True)
+            nn.LeakyReLU(0.2, True),
         ]
-        
+
         # 2. Hidden Layers
         nf_mult = 1
         nf_mult_prev = 1
-        
+
         for n in range(1, n_layers):  # gradually increase the number of filters
             nf_mult_prev = nf_mult
-            nf_mult = min(2 ** n, 8)
+            nf_mult = min(2**n, 8)
             sequence += [
-                nn.Conv3d(ndf * nf_mult_prev, ndf * nf_mult, kernel_size=kw, stride=2, padding=padw, bias=False),
+                nn.Conv3d(
+                    ndf * nf_mult_prev,
+                    ndf * nf_mult,
+                    kernel_size=kw,
+                    stride=2,
+                    padding=padw,
+                    bias=False,
+                ),
                 norm_layer(ndf * nf_mult),
-                nn.LeakyReLU(0.2, True)
+                nn.LeakyReLU(0.2, True),
             ]
 
         # 3. Intermediate Layer
         nf_mult_prev = nf_mult
-        nf_mult = min(2 ** n_layers, 8)
+        nf_mult = min(2**n_layers, 8)
         sequence += [
-            nn.Conv3d(ndf * nf_mult_prev, ndf * nf_mult, kernel_size=kw, stride=1, padding=padw, bias=False),
+            nn.Conv3d(
+                ndf * nf_mult_prev,
+                ndf * nf_mult,
+                kernel_size=kw,
+                stride=1,
+                padding=padw,
+                bias=False,
+            ),
             norm_layer(ndf * nf_mult),
-            nn.LeakyReLU(0.2, True)
+            nn.LeakyReLU(0.2, True),
         ]
 
         # 4. Output Layer
         # Maps to a 1-channel prediction map (Real/Fake)
-        sequence += [
-            nn.Conv3d(ndf * nf_mult, 1, kernel_size=kw, stride=1, padding=padw)
-        ]
+        sequence += [nn.Conv3d(ndf * nf_mult, 1, kernel_size=kw, stride=1, padding=padw)]
 
         self.model = nn.Sequential(*sequence)
 

@@ -9,7 +9,6 @@ import torch.nn.functional as F
 
 from ainpp_pb_latam.models.convlstm.blocks import ConvLSTMCell
 
-
 logger = logging.getLogger(__name__)
 
 
@@ -17,11 +16,12 @@ class ConvLSTM2D(nn.Module):
     """
     Multi-layer ConvLSTM for precipitation forecasting.
     """
+
     def __init__(self, input_channels, hidden_channels, kernel_size):
         super(ConvLSTM2D, self).__init__()
         self.input_channels = input_channels
         self.hidden_channels = hidden_channels
-        self. kernel_size = kernel_size
+        self.kernel_size = kernel_size
         self.num_layers = len(self.hidden_channels)
 
         # Create cells for each layer
@@ -32,7 +32,7 @@ class ConvLSTM2D(nn.Module):
                 ConvLSTMCell(
                     input_channels=cur_input_channels,
                     hidden_channels=hidden_channels[i],
-                    kernel_size=kernel_size
+                    kernel_size=kernel_size,
                 )
             )
         self.cell_list = nn.ModuleList(cell_list)
@@ -42,12 +42,12 @@ class ConvLSTM2D(nn.Module):
         Args:
             x: (B, T, C, H, W) - input sequence
             hidden_state: lista de tuplas [(h, c)] para cada camada
-        Returns: 
+        Returns:
             layer_output_list: lista com outputs de cada camada
             last_state_list: list with last states of each layer
         """
         batch_size, seq_len, _, height, width = x.size()
-        
+
         # Initialize hidden states if not provided
         if hidden_state is None:
             hidden_state = self._init_hidden(batch_size, (height, width))
@@ -60,10 +60,10 @@ class ConvLSTM2D(nn.Module):
         for layer_idx in range(self.num_layers):
             h, c = hidden_state[layer_idx]
             output_inner = []
-            
+
             # Processar cada timestep
             for t in range(seq_len):
-                h, c = self.cell_list[layer_idx](cur_layer_input[:, t, :, :, : ], (h, c))
+                h, c = self.cell_list[layer_idx](cur_layer_input[:, t, :, :, :], (h, c))
                 output_inner.append(h)
 
             # Empilhar outputs temporais
@@ -79,5 +79,5 @@ class ConvLSTM2D(nn.Module):
         """Inicializa hidden states para todas as camadas."""
         init_states = []
         for i in range(self.num_layers):
-            init_states.append(self. cell_list[i].init_hidden(batch_size, image_size))
+            init_states.append(self.cell_list[i].init_hidden(batch_size, image_size))
         return init_states

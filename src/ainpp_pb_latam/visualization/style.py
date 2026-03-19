@@ -1,12 +1,20 @@
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-def set_style(config=None, context="paper", style="whitegrid", palette="deep", font_family="sans-serif", dpi=300):
+
+def set_style(
+    config=None,
+    context="paper",
+    style="whitegrid",
+    palette="deep",
+    font_family="sans-serif",
+    dpi=300,
+):
     """
     Sets the plotting style using Seaborn and Matplotlib.
-    
+
     Args:
-        config (dict or DictConfig, optional): Configuration dictionary. 
+        config (dict or DictConfig, optional): Configuration dictionary.
             If provided, overrides key arguments.
         context (str): Seaborn context.
         style (str): Seaborn style.
@@ -25,16 +33,18 @@ def set_style(config=None, context="paper", style="whitegrid", palette="deep", f
         sns.set_theme(context=context, style=style, palette=palette)
     except ImportError:
         # Fallback
-        plt.style.use('ggplot')
-        
-    plt.rcParams.update({
-        'font.family': font_family,
-        'axes.titlesize': 14,
-        'axes.labelsize': 12,
-        'xtick.labelsize': 10,
-        'ytick.labelsize': 10,
-        'legend.fontsize': 10,
-        'figure.dpi': dpi,
-        'savefig.bbox': 'tight',
-        'image.cmap': 'viridis'
-    })
+        plt.style.use("ggplot")
+
+    plt.rcParams.update(
+        {
+            "font.family": font_family,
+            "axes.titlesize": 14,
+            "axes.labelsize": 12,
+            "xtick.labelsize": 10,
+            "ytick.labelsize": 10,
+            "legend.fontsize": 10,
+            "figure.dpi": dpi,
+            "savefig.bbox": "tight",
+            "image.cmap": "viridis",
+        }
+    )

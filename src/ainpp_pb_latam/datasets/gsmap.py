@@ -44,7 +44,7 @@ class AINPPPBLATAMDataset(Dataset[TensorPair]):
         output_timesteps: int = 6,
         stride: Optional[int] = None,
         # Rectangular Patch Parameters
-        patch_height: Optional[int] = 320, 
+        patch_height: Optional[int] = 320,
         patch_width: Optional[int] = 320,
         patch_stride_h: Optional[int] = None,
         patch_stride_w: Optional[int] = None,
@@ -54,7 +54,7 @@ class AINPPPBLATAMDataset(Dataset[TensorPair]):
         input_var: str = "gsmap_nrt",
         target_var: str = "gsmap_mvk",
         dtype: str = "float32",
-        return_metadata: bool = False
+        return_metadata: bool = False,
     ) -> None:
         """
         Initializes the dataset.
@@ -64,15 +64,15 @@ class AINPPPBLATAMDataset(Dataset[TensorPair]):
             group (str): Zarr group/split to open (e.g., 'train', 'validation').
             input_timesteps (int): Number of history frames (Tin).
             output_timesteps (int): Number of forecast frames (Tout).
-            stride (Optional[int]): Temporal stride between samples. 
+            stride (Optional[int]): Temporal stride between samples.
                 Defaults to output_timesteps for train, sequence_length for eval.
             patch_height (Optional[int]): Height of spatial patch. Defaults to 320.
             patch_width (Optional[int]): Width of spatial patch. Defaults to 320.
-            patch_stride_h (Optional[int]): Vertical stride for patch generation. 
+            patch_stride_h (Optional[int]): Vertical stride for patch generation.
                 If None, uses patch_height (no overlap).
-            patch_stride_w (Optional[int]): Horizontal stride for patch generation. 
+            patch_stride_w (Optional[int]): Horizontal stride for patch generation.
                 If None, uses patch_width (no overlap).
-            steps_per_epoch (Optional[int]): If set, enables Random Sampling mode 
+            steps_per_epoch (Optional[int]): If set, enables Random Sampling mode
                 with this many batches per epoch. If None, uses Deterministic Iteration.
             seed (int): Random seed for sampling reproducibility.
             consolidated (bool): Whether to use consolidated metadata for Zarr.
@@ -82,7 +82,7 @@ class AINPPPBLATAMDataset(Dataset[TensorPair]):
             return_metadata (bool): If True, __getitem__ returns (x, y, meta).
         """
         super().__init__()
-        
+
         # 1. Basic Configuration
         self.zarr_path = Path(zarr_path)
         if not self.zarr_path.exists():
@@ -96,7 +96,7 @@ class AINPPPBLATAMDataset(Dataset[TensorPair]):
         self.input_var = input_var
         self.target_var = target_var
         self.return_metadata = return_metadata
-        
+
         # Type conversion
         self.dtype = getattr(torch, dtype) if isinstance(dtype, str) else dtype
         self.rng = np.random.default_rng(seed)
@@ -122,7 +122,7 @@ class AINPPPBLATAMDataset(Dataset[TensorPair]):
         # Validation & NaN Handling
         if self.input_var not in self.ds.variables:
             raise KeyError(f"Input variable '{self.input_var}' not found in dataset.")
-        
+
         # Lazy loading + fillna (NaN -> 0.0)
         self.input_da = self.ds[self.input_var].fillna(0.0)
         self.target_da = self.ds[self.target_var].fillna(0.0)
@@ -175,14 +175,19 @@ class AINPPPBLATAMDataset(Dataset[TensorPair]):
         # Temporal
         max_t0 = self.total_timesteps - self.sequence_length
         if max_t0 < 0:
-            raise ValueError(f"Insufficient timesteps: {self.total_timesteps} < {self.sequence_length}")
+            raise ValueError(
+                f"Insufficient timesteps: {self.total_timesteps} < {self.sequence_length}"
+            )
         self.valid_t0 = list(range(0, max_t0 + 1, self.stride_t))
 
         # Spatial (Deterministic Grid)
         self.patch_origins = self._build_patch_grid(
-            height=self.H, width=self.W,
-            patch_h=self.patch_h, patch_w=self.patch_w,
-            stride_h=self.stride_h, stride_w=self.stride_w
+            height=self.H,
+            width=self.W,
+            patch_h=self.patch_h,
+            patch_w=self.patch_w,
+            stride_h=self.stride_h,
+            stride_w=self.stride_w,
         )
 
     @staticmethod
@@ -223,21 +228,17 @@ class AINPPPBLATAMDataset(Dataset[TensorPair]):
         ph, pw = self.patch_h, self.patch_w
         t_in_end = t0 + self.input_timesteps
         t_out_end = t_in_end + self.output_timesteps
-        
+
         i1 = i0 + ph
         j1 = j0 + pw
 
         # Xarray Slicing -> Numpy
         x_np = self.input_da.isel(
-            time=slice(t0, t_in_end), 
-            lat=slice(i0, i1), 
-            lon=slice(j0, j1)
+            time=slice(t0, t_in_end), lat=slice(i0, i1), lon=slice(j0, j1)
         ).to_numpy()
-        
+
         y_np = self.target_da.isel(
-            time=slice(t_in_end, t_out_end), 
-            lat=slice(i0, i1), 
-            lon=slice(j0, j1)
+            time=slice(t_in_end, t_out_end), lat=slice(i0, i1), lon=slice(j0, j1)
         ).to_numpy()
 
         # Convert to Tensor (Add channel dim: T, C, H, W)
@@ -246,5 +247,5 @@ class AINPPPBLATAMDataset(Dataset[TensorPair]):
 
         if self.return_metadata:
             return x, y, {"t0": t0, "i0": i0, "j0": j0, "ph": ph, "pw": pw}
-            
+
         return x, y

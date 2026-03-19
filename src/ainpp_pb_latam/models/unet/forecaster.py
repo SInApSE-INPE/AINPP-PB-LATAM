@@ -25,6 +25,7 @@ class BaseForecaster(nn.Module):
     """
     Base class for forecasters providing common utility methods.
     """
+
     def _apply_nonnegativity(self, x: torch.Tensor, mode: str = "relu") -> torch.Tensor:
         """
         Applies a non-linearity to enforce non-negative precipitation values.
@@ -47,8 +48,8 @@ class UNetMultiHorizon(BaseForecaster):
     """
     Direct Multi-Horizon Forecaster using a 2D U-Net backbone.
 
-    This model stacks input timesteps into the channel dimension, passes them 
-    through a 2D U-Net, and outputs all future timesteps simultaneously 
+    This model stacks input timesteps into the channel dimension, passes them
+    through a 2D U-Net, and outputs all future timesteps simultaneously
     by predicting (Output_Timesteps * Output_Channels) channels.
 
     Shape Logic:
@@ -65,7 +66,7 @@ class UNetMultiHorizon(BaseForecaster):
         features: Sequence[int] = (64, 128, 256, 512),
         kernel_size: int = 3,
         bilinear: bool = True,
-        nonnegativity: str = "relu"
+        nonnegativity: str = "relu",
     ):
         """
         Args:
@@ -83,14 +84,14 @@ class UNetMultiHorizon(BaseForecaster):
         self.output_timesteps = output_timesteps
         self.out_ch = output_channels
         self.nonnegativity = nonnegativity
-        
+
         # In Direct strategy, the U-Net maps (Tin * Cin) -> (Tout * Cout)
         self.unet = UNet2D(
             in_channels=input_timesteps * input_channels,
             out_channels=output_timesteps * output_channels,
             features=list(features),
             kernel_size=kernel_size,
-            bilinear=bilinear
+            bilinear=bilinear,
         )
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
@@ -102,16 +103,16 @@ class UNetMultiHorizon(BaseForecaster):
             torch.Tensor: Predicted tensor of shape (B, Tout, Cout, H, W).
         """
         b, tin, cin, h, w = x.shape
-        
+
         # Flatten temporal dimension into channels
         x_flat = x.reshape(b, tin * cin, h, w)
-        
+
         # Forward pass through U-Net
         y_flat = self.unet(x_flat)
-        
+
         # Reshape back to spatiotemporal format
         y = y_flat.reshape(b, self.output_timesteps, self.out_ch, h, w)
-        
+
         return self._apply_nonnegativity(y, self.nonnegativity)
 
 
@@ -119,7 +120,7 @@ class UNetAutoRegressive(BaseForecaster):
     """
     Auto-Regressive Forecaster using a 2D U-Net backbone.
 
-    This model predicts one frame at a time. The prediction is fed back 
+    This model predicts one frame at a time. The prediction is fed back
     into the input window (sliding window) to predict the subsequent frame.
 
     Mechanism:
@@ -136,7 +137,7 @@ class UNetAutoRegressive(BaseForecaster):
         features: Sequence[int] = (64, 128, 256, 512),
         kernel_size: int = 3,
         bilinear: bool = True,
-        nonnegativity: str = "relu"
+        nonnegativity: str = "relu",
     ):
         """
         Args:
@@ -157,14 +158,14 @@ class UNetAutoRegressive(BaseForecaster):
         self.kernel_size = kernel_size
         self.bilinear = bilinear
         self.nonnegativity = nonnegativity
-        
+
         # In AR strategy, the U-Net maps (Tin * Cin) -> (1 * Cin)
         self.unet = UNet2D(
             in_channels=self.input_timesteps * self.input_channels,
-            out_channels=self.input_channels, 
+            out_channels=self.input_channels,
             features=self.features,
             kernel_size=self.kernel_size,
-            bilinear=self.bilinear
+            bilinear=self.bilinear,
         )
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
@@ -181,7 +182,9 @@ class UNetAutoRegressive(BaseForecaster):
             ValueError: If input shape dimensions do not match the configuration.
         """
         if x.dim() != 5:
-            raise ValueError(f"Expected a 5D tensor (B, Tin, Cin, H, W). Got shape: {tuple(x.shape)}")
+            raise ValueError(
+                f"Expected a 5D tensor (B, Tin, Cin, H, W). Got shape: {tuple(x.shape)}"
+            )
 
         b, tin, cin, h, w = x.shape
         if tin != self.input_timesteps or cin != self.input_channels:
@@ -197,10 +200,10 @@ class UNetAutoRegressive(BaseForecaster):
         for _ in range(self.output_timesteps):
             # Flatten context for the 2D backbone
             context_flat = context.reshape(b, tin * cin, h, w)
-            
+
             # Predict next frame (B, Cin, H, W)
             next_frame = self.unet(context_flat)
-            
+
             # Add temporal dimension: (B, 1, Cin, H, W)
             next_frame = next_frame.unsqueeze(1)
             preds.append(next_frame)
@@ -213,5 +216,5 @@ class UNetAutoRegressive(BaseForecaster):
 
         # Concatenate all predictions along time dimension
         y = torch.cat(preds, dim=1)  # (B, Tout, Cin, H, W)
-        
+
         return self._apply_nonnegativity(y, self.nonnegativity)

@@ -72,6 +72,7 @@ verification = [
 
 [package.dev-dependencies]
 dev = [
+    { name = "black" },
     { name = "build" },
     { name = "twine" },
 ]
@@ -112,6 +113,7 @@ provides-extras = ["dl", "verification", "all", "dev", "docs"]
 
 [package.metadata.requires-dev]
 dev = [
+    { name = "black", specifier = ">=26.3.0" },
     { name = "build", specifier = ">=1.4.0" },
     { name = "twine", specifier = ">=6.2.0" },
 ]

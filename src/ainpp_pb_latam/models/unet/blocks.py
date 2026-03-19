@@ -46,16 +46,22 @@ class DoubleConv(nn.Module):
     ) -> None:
         super().__init__()
         if kernel_size <= 0 or kernel_size % 2 == 0:
-            raise ValueError("kernel_size must be a positive odd integer to preserve spatial dimensions via padding.")
+            raise ValueError(
+                "kernel_size must be a positive odd integer to preserve spatial dimensions via padding."
+            )
 
         mid_channels = out_channels if mid_channels is None else mid_channels
         padding = kernel_size // 2
 
         self.block = nn.Sequential(
-            nn.Conv2d(in_channels, mid_channels, kernel_size=kernel_size, padding=padding, bias=False),
+            nn.Conv2d(
+                in_channels, mid_channels, kernel_size=kernel_size, padding=padding, bias=False
+            ),
             norm_layer(mid_channels),
             activation(inplace=True),
-            nn.Conv2d(mid_channels, out_channels, kernel_size=kernel_size, padding=padding, bias=False),
+            nn.Conv2d(
+                mid_channels, out_channels, kernel_size=kernel_size, padding=padding, bias=False
+            ),
             norm_layer(out_channels),
             activation(inplace=True),
         )
@@ -127,7 +133,9 @@ class UpBlock(nn.Module):
         else:
             # transposed conv halves channels by design here
             self.up = nn.ConvTranspose2d(in_channels, in_channels // 2, kernel_size=2, stride=2)
-            self.conv = DoubleConv(in_channels // 2 + skip_channels, out_channels, kernel_size=kernel_size)
+            self.conv = DoubleConv(
+                in_channels // 2 + skip_channels, out_channels, kernel_size=kernel_size
+            )
 
     @staticmethod
     def _pad_to_match(x: torch.Tensor, ref: torch.Tensor) -> torch.Tensor:

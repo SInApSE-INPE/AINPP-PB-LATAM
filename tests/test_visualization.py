@@ -15,11 +15,13 @@ class TestPlotMetrics:
         # Arrange
         obs = np.random.randint(0, 2, size)
         probs = np.random.rand(size)
-        
+
         # Act
         plot_reliability_diagram(obs, probs, tmp_path)
         plot_roc_curve(obs, probs, tmp_path)
-        
+
         # Assert
-        assert (tmp_path / "reliability_diagram.png").exists(), "Reliability plot file was not created"
+        assert (
+            tmp_path / "reliability_diagram.png"
+        ).exists(), "Reliability plot file was not created"
         assert (tmp_path / "roc_curve.png").exists(), "ROC plot file was not created"

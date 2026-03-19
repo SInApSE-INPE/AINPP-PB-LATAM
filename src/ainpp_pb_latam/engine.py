@@ -17,6 +17,7 @@ from ainpp_pb_latam.visualization.samples import save_epoch_sample
 
 logger = logging.getLogger(__name__)
 
+
 def run_training(
     model: nn.Module,
     train_loader: DataLoader,
@@ -45,21 +46,21 @@ def run_training(
         train_sampler (Optional[DistributedSampler]): Distributed sampler used during training.
             Essential for ensuring correct data shuffling in multi-GPU environments. Defaults to None.
     """
-    
+
     # Setup Early Stopping
     # We use early_stopping (the config object) to instantiate the logic class
     best_model_path = Path(checkpoint.dir) / "best_model.pt"
-    
+
     early_stopper = EarlyStopping(
         patience=early_stopping.patience,
         delta=early_stopping.delta,
         path=best_model_path,
-        enabled=early_stopping.enabled
+        enabled=early_stopping.enabled,
     )
 
     if is_main_process():
         print(f"Starting training for {epochs} epochs...")
-    
+
     for epoch in range(1, epochs + 1):
         # DDP Requirement: set_epoch ensures the shuffle seed changes every epoch.
         # Without this, the data order would be identical across all epochs.
@@ -68,41 +69,38 @@ def run_training(
 
         model.train()
         train_loss = 0.0
-        
+
         # Progress Bar:
         # leave=True: Keeps the bar history in the terminal.
         # disable=not is_main_process(): Prevents 4 GPUs from printing 4 bars simultaneously.
         pbar = tqdm(
-            train_loader, 
-            desc=f"Epoch {epoch}/{epochs}", 
-            leave=True, 
-            disable=not is_main_process()
+            train_loader, desc=f"Epoch {epoch}/{epochs}", leave=True, disable=not is_main_process()
         )
-        
+
         for x, y in pbar:
             x, y = x.to(device, non_blocking=True), y.to(device, non_blocking=True)
-            
+
             optimizer.zero_grad()
             pred = model(x)
             loss = criterion(pred, y)
             loss.backward()
             optimizer.step()
-            
+
             train_loss += loss.item()
-            
+
             if is_main_process():
                 # Display instantaneous loss on the bar
-                pbar.set_postfix({'loss': f"{loss.item():.4f}"})
-        
+                pbar.set_postfix({"loss": f"{loss.item():.4f}"})
+
         avg_train_loss = train_loss / len(train_loader)
-        
+
         # Validation Phase
         avg_val_loss = run_validation(model, val_loader, criterion, device)
-        
+
         # ============================================================
         # SYNCHRONIZED STOPPING LOGIC (DDP Handling)
         # ============================================================
-        
+
         # 1. Flag: 0 = Continue, 1 = Stop
         stop_signal = torch.tensor(0, device=device)
 
@@ -118,7 +116,7 @@ def run_training(
 
             # Early Stopping Check
             early_stopper(avg_val_loss, model)
-            
+
             if early_stopper.early_stop:
                 logger.info("Early stopping triggered on Master. Initiating global stop.")
                 stop_signal = torch.tensor(1, device=device)
@@ -138,10 +136,7 @@ def run_training(
 
 
 def run_validation(
-    model: nn.Module,
-    loader: DataLoader,
-    criterion: nn.Module,
-    device: torch.device
+    model: nn.Module, loader: DataLoader, criterion: nn.Module, device: torch.device
 ) -> float:
     """
     Performs a full validation pass (without gradient calculation).
@@ -157,11 +152,11 @@ def run_validation(
     """
     model.eval()
     total_loss = 0.0
-    
+
     with torch.no_grad():
         for x, y in loader:
             x, y = x.to(device, non_blocking=True), y.to(device, non_blocking=True)
             pred = model(x)
             total_loss += criterion(pred, y).item()
-            
+
     return total_loss / len(loader)

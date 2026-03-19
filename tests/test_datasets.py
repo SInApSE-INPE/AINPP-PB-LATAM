@@ -5,7 +5,6 @@ import torch
 
 from ainpp_pb_latam.datasets import AINPPPBLATAMDataset
 
-
 # Zarr v3 + xarray compatibility needs proper adapter; skip until implemented.
 pytestmark = pytest.mark.skip(reason="Dataset tests temporarily skipped pending zarr v3 harness")
 
@@ -55,11 +54,11 @@ class TestAINPPPBLATAMDataset:
             steps_per_epoch=None,
             seed=0,
         )
-        
+
         # Act
         first = ds[0][0]
         second = ds[1][0]
-        
+
         # Assert
         # Ensure that sequential indexing fetches physically different spatial/temporal slices
         assert not torch.equal(first, second)

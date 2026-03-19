@@ -17,10 +17,11 @@ from ainpp_pb_latam.models.afno.blocks import AFNOBlock
 
 logger = logging.getLogger(__name__)
 
+
 class AFNO2D(nn.Module):
     """
-    AFNO model for 2D Precipitation Nowcasting. 
-    Propused by "Adaptive Fourier Neural Operator for Efficient Spatio-Temporal 
+    AFNO model for 2D Precipitation Nowcasting.
+    Propused by "Adaptive Fourier Neural Operator for Efficient Spatio-Temporal
     Forecasting" (Guibas et al., NeurIPS 2021).
 
     This architecture uses patch embeddings and spectral processing in the Fourier domain
@@ -59,18 +60,18 @@ class AFNO2D(nn.Module):
         """
         super().__init__()
         logger.info("Initializing AFNO2D forecaster.")
-        
+
         self.img_size = img_size
         self.patch_size = patch_size
         self.input_timesteps = input_timesteps
         self.input_channels = input_channels
         self.output_timesteps = output_timesteps
         self.output_channels = output_channels
-        
+
         # Grid dimensions in patch space
         self.h = self.img_size[0] // self.patch_size
         self.w = self.img_size[1] // self.patch_size
-        
+
         # 1. Patch Embedding
         # We flatten Time and Channels into a single dimension for the Conv2d
         # Input: (B, Tin*Cin, H, W) -> Output: (B, embed_dim, h, w)
@@ -79,28 +80,23 @@ class AFNO2D(nn.Module):
             in_channels=input_timesteps * input_channels,
             out_channels=embed_dim,
             kernel_size=patch_size,
-            stride=patch_size
+            stride=patch_size,
         )
-        
+
         # 2. Positional Embedding
         # Scaled by 0.02 for better initialization stability
-        self.pos_embed = nn.Parameter(
-            torch.randn(1, self.h, self.w, embed_dim) * 0.02
-        )
-        
+        self.pos_embed = nn.Parameter(torch.randn(1, self.h, self.w, embed_dim) * 0.02)
+
         self.dropout = nn.Dropout(0.1)
-        
+
         # 3. AFNO Blocks Stack
-        self.blocks = nn.ModuleList([
-            AFNOBlock(
-                dim=embed_dim, 
-                h=self.h, 
-                w=self.w, 
-                num_blocks=num_blocks
-            )
-            for _ in range(depth)
-        ])
-        
+        self.blocks = nn.ModuleList(
+            [
+                AFNOBlock(dim=embed_dim, h=self.h, w=self.w, num_blocks=num_blocks)
+                for _ in range(depth)
+            ]
+        )
+
         # 4. Reconstruction Head
         # Upsamples from patch space back to pixel space
         # Output channels = Tout * Cout
@@ -108,7 +104,7 @@ class AFNO2D(nn.Module):
             in_channels=embed_dim,
             out_channels=output_timesteps * output_channels,
             kernel_size=patch_size,
-            stride=patch_size
+            stride=patch_size,
         )
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
@@ -124,31 +120,31 @@ class AFNO2D(nn.Module):
         # x shape: [B, Tin, Cin, H, W]
         if x.dim() != 5:
             raise ValueError(f"Expected 5D input (B, T, C, H, W), got shape {x.shape}")
-            
+
         B, T, C, H, W = x.shape
-        
+
         # Flatten Temporal and Channel dimensions
         # [B, T, C, H, W] -> [B, T*C, H, W]
         x = x.reshape(B, T * C, H, W)
-        
+
         # 1. Patch Embedding
-        x = self.patch_embed(x)   # [B, embed_dim, h, w]
-        x = x.permute(0, 2, 3, 1) # [B, h, w, embed_dim] (Channels last for Transformer)
-        
+        x = self.patch_embed(x)  # [B, embed_dim, h, w]
+        x = x.permute(0, 2, 3, 1)  # [B, h, w, embed_dim] (Channels last for Transformer)
+
         # 2. Positional Embedding
         x = x + self.pos_embed
         x = self.dropout(x)
-        
+
         # 3. AFNO Transformer Blocks
         for blk in self.blocks:
             x = blk(x)
-            
+
         # 4. Reconstruction
-        x = x.permute(0, 3, 1, 2) # Back to [B, embed_dim, h, w]
-        x = self.head(x)          # [B, Tout*Cout, H, W]
+        x = x.permute(0, 3, 1, 2)  # Back to [B, embed_dim, h, w]
+        x = self.head(x)  # [B, Tout*Cout, H, W]
 
         # Reshape back to 5D: [B, Tout, Cout, H, W]
         # x = x.unsqueeze(2)
         x = x.reshape(B, self.output_timesteps, self.output_channels, H, W)
-        
+
         return x

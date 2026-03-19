@@ -146,6 +146,7 @@ exclude = ["tests/test_output"]
 
 [dependency-groups]
 dev = [
+    "black>=26.3.0",
     "build>=1.4.0",
     "twine>=6.2.0",
 ]

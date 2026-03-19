@@ -1,11 +1,12 @@
 import numpy as np
 import os
 
+
 class LogZScoreStandardizer:
     def __init__(self, mean_log=None, std_log=None, params_dir=None, region=None):
         """
         Initialize the LogZScoreStandardizer.
-        
+
         Args:
             mean_log (float or np.ndarray, optional): Mean of the log-transformed data.
             std_log (float or np.ndarray, optional): Std of the log-transformed data.
@@ -28,7 +29,7 @@ class LogZScoreStandardizer:
         try:
             mean_path = os.path.join(params_dir, f"gsmap_nrt+mvk_log_mean_{region}.npy")
             std_path = os.path.join(params_dir, f"gsmap_nrt+mvk_log_std_{region}.npy")
-            
+
             self.mean_log = np.load(mean_path)
             self.std_log = np.load(std_path)
             print(f"Loaded standardization params from {params_dir}")
@@ -54,15 +55,15 @@ class LogZScoreStandardizer:
         """
         # 1. Undo Z-Score
         # Ensure operations work with both scalar and tensors (numpy/torch)
-        # converting to numpy if it's a tensor might be needed if we want pure numpy output, 
+        # converting to numpy if it's a tensor might be needed if we want pure numpy output,
         # but let's try to keep it compatible if passed types support broadcasting.
-        if hasattr(x_norm, 'cpu'): # is tensor
+        if hasattr(x_norm, "cpu"):  # is tensor
             x_norm = x_norm.cpu().numpy()
-            
+
         x_log = x_norm * self.std_log + self.mean_log
-        
+
         # 2. Undo Log (exp(x) - 1)
         x_mmh = np.expm1(x_log)
-        
+
         # 3. Ensure non-negativity
         return np.maximum(x_mmh, 0.0)

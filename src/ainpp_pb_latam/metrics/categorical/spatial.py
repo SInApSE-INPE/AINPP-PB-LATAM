@@ -245,7 +245,9 @@ def compute_fss_for_lead(zarr_path: Path, cfg: FSSConfig) -> xr.Dataset:
     ds_out = xr.concat(per_thr, dim="threshold")  # (threshold, scale_km, time)
 
     # Add lead dimension
-    ds_out = ds_out.assign_coords(lead_time_hours=np.int32(lead_hours)).expand_dims("lead_time_hours")
+    ds_out = ds_out.assign_coords(lead_time_hours=np.int32(lead_hours)).expand_dims(
+        "lead_time_hours"
+    )
 
     # Add time-mean summary
     ds_out["fss_mean_time"] = ds_out["fss"].mean(dim="time").astype("float32")
@@ -312,14 +314,15 @@ def compute_fss_for_all_leads(
         raise FileNotFoundError(f"No LEAD_*.zarr stores found in: {model_root}")
 
     results: List[xr.Dataset] = []
-    
+
     # Use tqdm if available
     try:
         from tqdm import tqdm
+
         iterator = tqdm(lead_stores, desc="Computing FSS")
     except ImportError:
         iterator = lead_stores
-        
+
     for z in iterator:
         # print(f"[INFO] Computing FSS for {z.name}")
         ds_fss = compute_fss_for_lead(z, cfg)

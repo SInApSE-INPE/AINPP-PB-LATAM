@@ -16,11 +16,11 @@ class TestWeightedMSELoss:
         # Arrange
         x, y = tensor_pair
         y_high = y + 5.0  # amplify targets to guarantee they exceed the threshold
-        
+
         # Act
         loss_plain = F.mse_loss(x, y_high)
         loss_weighted = WeightedMSELoss(alpha=alpha, threshold=threshold)(x, y_high)
-        
+
         # Assert
         assert loss_weighted.item() > loss_plain.item()
 
@@ -35,11 +35,11 @@ class TestLogCoshLoss:
         # Arrange
         x, _ = tensor_pair
         y = x + 1e-3  # small error
-        
+
         # Act
         loss = LogCoshLoss()(x, y)
         approx = F.mse_loss(x, y)
-        
+
         # Assert
         assert torch.isfinite(loss)
         assert loss.item() <= approx.item() * 2  # Log-cosh approximation bound for small x
@@ -53,10 +53,10 @@ class TestSSIMLoss:
         # Arrange
         x = torch.rand(2, 3, 1, 8, 8)
         y = torch.rand(2, 3, 1, 8, 8)
-        
+
         # Act
         loss = SSIMLoss()(x, y)
-        
+
         # Assert
         assert 0.0 <= loss.item() <= 2.0
 
@@ -71,17 +71,17 @@ class TestHybridLoss:
         # Arrange
         x, y = tensor_pair
         x.requires_grad_(True)
-        
+
         losses = [WeightedMSELoss(alpha=0.0), LogCoshLoss()]
         weights = [0.7, 0.3]
         hybrid = HybridLoss(losses=losses, weights=weights)
-        
+
         # Act
         value = hybrid(x, y)
-        
+
         # Assert
         assert value.item() >= 0
-        
+
         # Ensure differentiation works correctly without throwing exceptions
         value.backward()
         assert x.grad is not None

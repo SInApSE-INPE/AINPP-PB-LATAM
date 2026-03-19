@@ -25,9 +25,9 @@ class EarlyStopping:
         self,
         patience: int = 5,
         delta: float = 0,
-        mode: str = 'min',
-        path: Union[str, Path] = 'checkpoint.pt',
-        enabled: bool = True
+        mode: str = "min",
+        path: Union[str, Path] = "checkpoint.pt",
+        enabled: bool = True,
     ) -> None:
         """
         Initializes the EarlyStopping object.
@@ -44,11 +44,11 @@ class EarlyStopping:
         self.mode = mode
         self.path = Path(path)
         self.enabled = enabled
-        
+
         self.counter = 0
         self.best_score: Optional[float] = None
         self.early_stop = False
-        self.val_loss_min = np.inf if mode == 'min' else -np.inf
+        self.val_loss_min = np.inf if mode == "min" else -np.inf
 
         if not enabled:
             logger.info("Early Stopping disabled.")
@@ -64,14 +64,14 @@ class EarlyStopping:
         if not self.enabled:
             return
 
-        score = -val_loss if self.mode == 'min' else val_loss
+        score = -val_loss if self.mode == "min" else val_loss
 
         if self.best_score is None:
             self.best_score = score
             self.save_checkpoint(val_loss, model)
         elif score < self.best_score + self.delta:
             self.counter += 1
-            logger.info(f'EarlyStopping counter: {self.counter} out of {self.patience}')
+            logger.info(f"EarlyStopping counter: {self.counter} out of {self.patience}")
             if self.counter >= self.patience:
                 self.early_stop = True
         else:
@@ -87,15 +87,19 @@ class EarlyStopping:
             val_loss (float): Current validation loss.
             model (nn.Module): The model to save.
         """
-        if self.mode == 'min':
-            logger.info(f'Validation loss decreased ({self.val_loss_min:.6f} --> {val_loss:.6f}). Saving model ...')
-        
+        if self.mode == "min":
+            logger.info(
+                f"Validation loss decreased ({self.val_loss_min:.6f} --> {val_loss:.6f}). Saving model ..."
+            )
+
         self.path.parent.mkdir(parents=True, exist_ok=True)
         torch.save(model.state_dict(), self.path)
         self.val_loss_min = val_loss
 
 
-def save_epoch_checkpoint(model: nn.Module, epoch: int, save_dir: Union[str, Path], **kwargs: Any) -> None:
+def save_epoch_checkpoint(
+    model: nn.Module, epoch: int, save_dir: Union[str, Path], **kwargs: Any
+) -> None:
     """
     Saves a periodic checkpoint of the model.
 

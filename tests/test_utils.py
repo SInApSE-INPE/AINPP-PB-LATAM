@@ -9,6 +9,7 @@ from ainpp_pb_latam._utils.standardization import LogZScoreStandardizer
 
 class _ToyModel(torch.nn.Module):
     """A minimal neural network model for testing utility functions."""
+
     def __init__(self) -> None:
         super().__init__()
         self.linear = torch.nn.Linear(2, 1)
@@ -31,7 +32,7 @@ class TestEarlyStopping:
         # Baseline score
         stopper(1.0, model)
         assert not stopper.early_stop
-        
+
         # Improvement saves checkpoint
         stopper(0.9, model)
         assert checkpoint.exists()
@@ -40,7 +41,7 @@ class TestEarlyStopping:
         # Worse score (delay 1)
         stopper(1.0, model)
         assert not stopper.early_stop
-        
+
         # Worse score (delay 2), should trigger early stopping
         stopper(1.1, model)
         assert stopper.early_stop
@@ -55,10 +56,10 @@ class TestOptimizerBuilder:
         # Arrange
         model = _ToyModel()
         cfg = {"lr": lr}
-        
+
         # Act
         opt = build_optimizer(model.parameters(), cfg)
-        
+
         # Assert
         assert opt.defaults["lr"] == pytest.approx(lr)
 
@@ -67,16 +68,15 @@ class TestStandardization:
     """Test suite for the data standardizers."""
 
     @pytest.mark.parametrize("values", [[0.0, 1.0, 2.0], [0.5, 3.14, 2.71]])
-
     def test_log_zscore_roundtrip(self, values: list[float]) -> None:
         """Test that LogZScoreStandardizer preserves values through forward/inverse transformation."""
         # Arrange
         std = LogZScoreStandardizer(mean_log=1.0, std_log=0.5)
-        
+
         # Act
         transformed = std.transform(values)
         recovered = std.inverse_transform(transformed)
-        
+
         # Assert
         assert recovered.shape == transformed.shape
         # Use np.testing or pytest.approx to check element-wise arrays easily

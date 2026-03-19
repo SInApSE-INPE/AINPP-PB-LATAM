@@ -11,7 +11,6 @@ from omegaconf import DictConfig, OmegaConf
 # Ensure you have run: uv pip install -e .
 
 
-
 from ainpp_pb_latam.datasets import NowcastingDataset
 from ainpp_pb_latam.models import unet  # noqa: F401  # Ensure model modules are discoverable
 from ainpp_pb_latam.losses import HybridLoss  # noqa: F401
@@ -22,7 +21,6 @@ from ainpp_pb_latam.evaluation.evaluator import Evaluator
 from ainpp_pb_latam.inference import Inferencer
 
 LOG = logging.getLogger("ainpp_pb_latam.cli")
-
 
 
 def _build_dataloader(
@@ -63,9 +61,7 @@ def _run_train(cfg: DictConfig) -> None:
 
     # Distributed sampler (optional)
     train_sampler = (
-        train_loader.sampler
-        if isinstance(train_loader.sampler, DistributedSampler)
-        else None
+        train_loader.sampler if isinstance(train_loader.sampler, DistributedSampler) else None
     )
 
     run_training(
@@ -114,10 +110,11 @@ def _run_evaluate(cfg: DictConfig) -> None:
         device=device,
     )
     df_summary = evaluator.evaluate()
-    
+
     # Generate visualization figures Based on the aggregated dataframe
     vis_dir = cfg.get("visualization", {}).get("output_dir", "outputs/figures")
     from ainpp_pb_latam.visualization.generate_figures import generate_benchmark_figures
+
     generate_benchmark_figures(df_summary, vis_dir)
 
 
@@ -127,7 +124,7 @@ def _run_infer(cfg: DictConfig) -> None:
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model = instantiate(cfg.model).to(device)
-    
+
     if cfg.get("checkpoint"):
         checkpoint_path = Path(cfg.checkpoint)
         if checkpoint_path.exists():
@@ -136,7 +133,7 @@ def _run_infer(cfg: DictConfig) -> None:
             model.load_state_dict(state)
         else:
             LOG.warning("Checkpoint not found at %s; predicting with fresh model", checkpoint_path)
-    
+
     inferencer = Inferencer(model=model, config=cfg, device=device)
     mode = cfg.inference.mode
 
@@ -146,23 +143,23 @@ def _run_infer(cfg: DictConfig) -> None:
         test_loader = DataLoader(
             dataset=test_dataset,
             shuffle=False,
-            **cfg.dataset.val_loader, # Usa os args de validation (batch_size, num_workers)
+            **cfg.dataset.val_loader,  # Usa os args de validation (batch_size, num_workers)
         )
         inferencer.infer_historical(dataloader=test_loader)
-    
+
     elif mode == "single":
         # Simula carregamento do primeiro batch e pega a primeira amostra
         ds_kwargs = cfg.dataset.overrides.get("test", {}) if cfg.dataset.get("overrides") else {}
         test_dataset = instantiate(cfg.dataset.dataset, **ds_kwargs)
-        
+
         # Physically gets the first compatible shape (depends on how Dataset returns)
         sample = test_dataset[0]
         if isinstance(sample, (list, tuple)):
             input_tensor = sample[0]
         else:
             input_tensor = sample
-            
-        base_timestamp = "20260316_1200" # Hardcoded example temporarily for CLI compatibility
+
+        base_timestamp = "20260316_1200"  # Hardcoded example temporarily for CLI compatibility
         inferencer.infer_single(input_tensor=input_tensor, base_timestamp=base_timestamp)
     else:
         raise ValueError(f"Inference mode {mode} not supported. Use 'historical' or 'single'.")

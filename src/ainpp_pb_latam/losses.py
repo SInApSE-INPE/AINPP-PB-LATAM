@@ -15,6 +15,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torchvision import models
 
+
 class WeightedMSELoss(nn.Module):
     """
     Mean Squared Error with dynamic weighting based on target intensity.
@@ -30,7 +31,7 @@ class WeightedMSELoss(nn.Module):
     def __init__(self, alpha: float = 1.0, threshold: float = 0.0):
         """
         Args:
-            alpha (float): Scaling factor for heavy rain. 
+            alpha (float): Scaling factor for heavy rain.
                            Higher values prioritize heavy rain. Defaults to 1.0.
             threshold (float): Only apply weight for values > threshold. Defaults to 0.0.
         """
@@ -48,7 +49,7 @@ class WeightedMSELoss(nn.Module):
             torch.Tensor: Scalar loss value.
         """
         mse = (input - target) ** 2
-        
+
         # Create weight map based on target intensity
         # If target > threshold, weight grows linearly. Else weight is 1.
         if self.alpha > 0:
@@ -68,10 +69,11 @@ class LogCoshLoss(nn.Module):
     - Behaves like MSE (L2) for small errors (x < 1).
     - Behaves like MAE (L1) for large errors (x > 1).
     - Fully differentiable (unlike MAE at 0).
-    
+
     Formula:
         L = log(cosh(pred - target))
     """
+
     def __init__(self):
         super().__init__()
 
@@ -87,7 +89,7 @@ class SSIMLoss(nn.Module):
     Designed to penalize structural differences rather than pixel-wise errors.
     Crucial for preventing the "blurring" effect common in MSE-trained models.
 
-    Note: This implementation handles 5D tensors (B, T, C, H, W) by flattening 
+    Note: This implementation handles 5D tensors (B, T, C, H, W) by flattening
     Batch and Time dimensions during computation.
     """
 
@@ -103,10 +105,12 @@ class SSIMLoss(nn.Module):
         self.window = self._create_window(window_size, self.channel)
 
     def _gaussian(self, window_size: int, sigma: float) -> torch.Tensor:
-        gauss = torch.Tensor([
-            math.exp(-(x - window_size // 2) ** 2 / float(2 * sigma ** 2))
-            for x in range(window_size)
-        ])
+        gauss = torch.Tensor(
+            [
+                math.exp(-((x - window_size // 2) ** 2) / float(2 * sigma**2))
+                for x in range(window_size)
+            ]
+        )
         return gauss / gauss.sum()
 
     def _create_window(self, window_size: int, channel: int) -> torch.Tensor:
@@ -116,14 +120,14 @@ class SSIMLoss(nn.Module):
         return window
 
     def _ssim(
-        self, 
-        img1: torch.Tensor, 
-        img2: torch.Tensor, 
-        window: torch.Tensor, 
-        window_size: int, 
-        channel: int
+        self,
+        img1: torch.Tensor,
+        img2: torch.Tensor,
+        window: torch.Tensor,
+        window_size: int,
+        channel: int,
     ) -> torch.Tensor:
-        
+
         mu1 = F.conv2d(img1, window, padding=window_size // 2, groups=channel)
         mu2 = F.conv2d(img2, window, padding=window_size // 2, groups=channel)
 
@@ -135,11 +139,12 @@ class SSIMLoss(nn.Module):
         sigma2_sq = F.conv2d(img2 * img2, window, padding=window_size // 2, groups=channel) - mu2_sq
         sigma12 = F.conv2d(img1 * img2, window, padding=window_size // 2, groups=channel) - mu1_mu2
 
-        C1 = 0.01 ** 2
-        C2 = 0.03 ** 2
+        C1 = 0.01**2
+        C2 = 0.03**2
 
-        ssim_map = ((2 * mu1_mu2 + C1) * (2 * sigma12 + C2)) / \
-                   ((mu1_sq + mu2_sq + C1) * (sigma1_sq + sigma2_sq + C2))
+        ssim_map = ((2 * mu1_mu2 + C1) * (2 * sigma12 + C2)) / (
+            (mu1_sq + mu2_sq + C1) * (sigma1_sq + sigma2_sq + C2)
+        )
 
         return ssim_map.mean()
 
@@ -156,7 +161,7 @@ class SSIMLoss(nn.Module):
             input = input.reshape(b * t, c, h, w)
             target = target.reshape(b * t, c, h, w)
 
-        (_, channel, _, _) = input.size()
+        _, channel, _, _ = input.size()
 
         # Update window if device/type/channels changed
         if channel == self.channel and self.window.data.type() == input.data.type():
@@ -166,10 +171,10 @@ class SSIMLoss(nn.Module):
             window = window.type_as(input).to(input.device)
             self.window = window
             self.channel = channel
-            
+
         # Ensure window is on correct device
         if self.window.device != input.device:
-             self.window = self.window.to(input.device)
+            self.window = self.window.to(input.device)
 
         # Return 1 - SSIM (because we want to minimize loss)
         return 1.0 - self._ssim(input, target, self.window, self.window_size, channel)
@@ -178,10 +183,10 @@ class SSIMLoss(nn.Module):
 class HybridLoss(nn.Module):
     """
     Weighted combination of multiple loss functions.
-    
+
     Designed to be instantiated via Hydra, allowing the user to mix-and-match
     losses without changing code.
-    
+
     Example:
         Total = 1.0 * MSE + 0.1 * SSIM
     """
@@ -194,7 +199,7 @@ class HybridLoss(nn.Module):
         """
         super().__init__()
         assert len(losses) == len(weights), "Number of losses and weights must match."
-        
+
         self.losses = nn.ModuleList(losses)
         self.weights = weights
 
@@ -203,7 +208,8 @@ class HybridLoss(nn.Module):
         for loss_fn, w in zip(self.losses, self.weights):
             total_loss += w * loss_fn(input, target)
         return total_loss
-    
+
+
 class HuberLoss(nn.Module):
     """
     Huber Loss wrapper.
@@ -215,6 +221,7 @@ class HuberLoss(nn.Module):
         0.5 * x^2                  if |x| <= delta
         delta * (|x| - 0.5 * delta)  otherwise
     """
+
     def __init__(self, delta: float = 1.0):
         """
         Args:
@@ -235,6 +242,7 @@ class CrossEntropyLoss(nn.Module):
     Used if the precipitation problem is framed as a classification task
     (e.g., binning precipitation values into classes: None, Light, Heavy).
     """
+
     def __init__(self, weights: Optional[List[float]] = None):
         """
         Args:
@@ -263,6 +271,7 @@ class BinaryFocalLoss(nn.Module):
     Focuses training on hard examples and down-weights easy negatives
     (e.g., vast areas of no rain).
     """
+
     def __init__(self, alpha: float = 0.25, gamma: float = 2.0, threshold: float = 0.1):
         """
         Args:
@@ -278,10 +287,10 @@ class BinaryFocalLoss(nn.Module):
     def forward(self, input: torch.Tensor, target: torch.Tensor) -> torch.Tensor:
         # Binarize Target based on precipitation threshold
         target_binary = (target > self.threshold).float()
-        
+
         # Assume input are logits, so apply sigmoid
         probs = torch.sigmoid(input)
-        
+
         # Standard Focal Loss Formula
         ce_loss = F.binary_cross_entropy_with_logits(input, target_binary, reduction="none")
         p_t = probs * target_binary + (1 - probs) * (1 - target_binary)
@@ -301,6 +310,7 @@ class DiceLoss(nn.Module):
     Optimizes the overlap between predicted rain mask and actual rain mask.
     Crucial for correctly predicting the spatial extent (shape) of storms.
     """
+
     def __init__(self, threshold: float = 0.1, smooth: float = 1e-6):
         """
         Args:
@@ -316,13 +326,13 @@ class DiceLoss(nn.Module):
         # Note: Using sigmoid on input to simulate probability if it's raw regression output
         # For pure regression models, we might strictly cut at threshold.
         # Here we use soft approach for differentiability.
-        input_soft = torch.sigmoid(input - self.threshold) 
+        input_soft = torch.sigmoid(input - self.threshold)
         target_binary = (target > self.threshold).float()
 
         intersection = (input_soft * target_binary).sum()
         union = input_soft.sum() + target_binary.sum()
 
-        dice = (2. * intersection + self.smooth) / (union + self.smooth)
+        dice = (2.0 * intersection + self.smooth) / (union + self.smooth)
         return 1.0 - dice
 
 
@@ -330,9 +340,10 @@ class AdvancedTorrentialLoss(nn.Module):
     """
     Advanced Torrential (AT) Loss.
 
-    A specialized weighted MSE that applies exponential penalties to 
+    A specialized weighted MSE that applies exponential penalties to
     extreme rainfall events defined by multiple thresholds.
     """
+
     def __init__(self, thresholds: List[float] = [10.0, 30.0], weights: List[float] = [2.0, 5.0]):
         """
         Args:
@@ -365,6 +376,7 @@ class SpectralLoss(nn.Module):
     Calculates loss in the frequency domain (FFT). This helps the model
     capture global patterns and textures, reducing blurriness.
     """
+
     def __init__(self, alpha: float = 1.0, beta: float = 1.0):
         """
         Args:
@@ -378,15 +390,15 @@ class SpectralLoss(nn.Module):
     def forward(self, input: torch.Tensor, target: torch.Tensor) -> torch.Tensor:
         # Flatten batch and time dimensions for 2D FFT
         # Input: (B, T, C, H, W) -> (N, H, W) assuming C=1
-        
+
         if input.dim() == 5:
             b, t, c, h, w = input.shape
             input = input.reshape(-1, h, w)
             target = target.reshape(-1, h, w)
-        
+
         # FFT
-        fft_pred = torch.fft.rfft2(input, norm='ortho')
-        fft_target = torch.fft.rfft2(target, norm='ortho')
+        fft_pred = torch.fft.rfft2(input, norm="ortho")
+        fft_target = torch.fft.rfft2(target, norm="ortho")
 
         # 1. Amplitude Loss (Magnitude)
         amp_pred = torch.abs(fft_pred)
@@ -404,13 +416,14 @@ class PerceptualLoss(nn.Module):
     """
     Perceptual Loss (Feature Reconstruction Loss) using VGG16.
 
-    Extracts features from a pre-trained VGG network and computes MSE 
+    Extracts features from a pre-trained VGG network and computes MSE
     between feature maps. Forces the model to generate structurally realistic rain.
     """
+
     def __init__(self, layer_ids: List[int] = [3, 8, 15, 22]):
         """
         Args:
-            layer_ids (List[int]): Indices of VGG features to use. 
+            layer_ids (List[int]): Indices of VGG features to use.
                                    [3, 8, 15, 22] corresponds roughly to relu1_2, relu2_2...
         """
         super().__init__()
@@ -419,20 +432,22 @@ class PerceptualLoss(nn.Module):
             vgg = models.vgg16(weights=models.VGG16_Weights.DEFAULT)
             self.vgg_layers = vgg.features
             self.layer_ids = layer_ids
-            
+
             # Freeze VGG parameters (we don't train VGG)
             for param in self.vgg_layers.parameters():
                 param.requires_grad = False
-            
+
             self.enabled = True
         except Exception as e:
-            print(f"Warning: Could not load VGG weights (No Internet?). Perceptual loss disabled. Error: {e}")
+            print(
+                f"Warning: Could not load VGG weights (No Internet?). Perceptual loss disabled. Error: {e}"
+            )
             self.vgg_layers = None
             self.enabled = False
 
     def forward(self, input: torch.Tensor, target: torch.Tensor) -> torch.Tensor:
         if not self.enabled or self.vgg_layers is None:
-            return F.mse_loss(input, target) # Fallback
+            return F.mse_loss(input, target)  # Fallback
 
         # Handle 5D input
         if input.dim() == 5:
@@ -449,15 +464,15 @@ class PerceptualLoss(nn.Module):
         loss = 0.0
         x = input
         y = target
-        
+
         # Normalize input for VGG (ImageNet stats) roughly
         # Assuming input is precipitation, we scale it to look somewhat like an image
         # Or pass raw if already normalized. Here passing raw.
-        
+
         for i, layer in enumerate(self.vgg_layers):
             x = layer(x)
             y = layer(y)
             if i in self.layer_ids:
                 loss += F.mse_loss(x, y)
-        
+
         return loss
