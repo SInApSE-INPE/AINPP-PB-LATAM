@@ -2,12 +2,17 @@
   <img src="https://raw.githubusercontent.com/SInApSE-INPE/AINPP-PB-LATAM/refs/heads/main/assets/GA_Almeida_etal_2026.jpg" alt="AINPP Precipitation Benchmark Cover" width="100%">
   <br /> <br />
 
-  [![DOI](https://img.shields.io/badge/DOI-10.1109%2FACCESS.2026.3670767-blue.svg)](https://doi.org/10.1109/ACCESS.2026.3670767)
-  [![PyPI](https://img.shields.io/pypi/v/ainpp-pb-latam)](https://pypi.org/project/ainpp-pb-latam)
-  [![Test](https://img.shields.io/github/actions/workflow/status/SInApSE-INPE/AINPP-PB-LATAM/ci.yml?branch=main&label=Test)](https://github.com/SInApSE-INPE/AINPP-PB-LATAM/actions/workflows/ci.yml)
-  [![Version](https://img.shields.io/github/v/release/SInApSE-INPE/AINPP-PB-LATAM)](https://github.com/SInApSE-INPE/AINPP-PB-LATAM/releases)
-  [![License](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
-  ![Coverage](https://img.shields.io/badge/Coverage-100%25-brightgreen.svg)
+  [![GitHub tag (latest by date)](https://img.shields.io/github/v/tag/SInApSE-INPE/AINPP-PB-LATAM?style=flat-square&color=orange&label=release)](https://github.com/SInApSE-INPE/AINPP-PB-LATAM/tags)
+  [![PyPI](https://img.shields.io/pypi/v/ainpp-pb-latam?style=flat-square&color=blue)](https://pypi.org/project/ainpp-pb-latam)
+  [![Python Versions](https://img.shields.io/pypi/pyversions/ainpp-pb-latam?style=flat-square)](https://pypi.org/project/ainpp-pb-latam)
+  [![License](https://img.shields.io/badge/License-MIT-blue.svg?style=flat-square)](https://opensource.org/licenses/MIT)
+
+  [![Test](https://img.shields.io/github/actions/workflow/status/SInApSE-INPE/AINPP-PB-LATAM/ci.yml?branch=main&label=tests&style=flat-square)](https://github.com/SInApSE-INPE/AINPP-PB-LATAM/actions/workflows/ci.yml)
+  [![Coverage](https://img.shields.io/badge/Coverage-100%25-brightgreen.svg?style=flat-square)](https://github.com/SInApSE-INPE/AINPP-PB-LATAM/actions)
+
+  [![DOI](https://img.shields.io/badge/DOI-10.1109%2FACCESS.2026.3670767-blue.svg?style=flat-square)](https://doi.org/10.1109/ACCESS.2026.3670767)
+  [![Downloads](https://img.shields.io/pypi/dm/ainpp-pb-latam?style=flat-square&color=dark-green)](https://pypi.org/project/ainpp-pb-latam)
+
 
   <br />
 
@@ -16,6 +21,22 @@
   _Unified scientific benchmark library for precipitation nowcasting in Latin America using deep learning on high-performance computing (HPC) environments._
   <br />
 </div>
+
+## Developers
+
+- **Adriano P. Almeida**<br> 
+  National Institute for Space Research (INPE/Brazil)<br>
+  adriano.almeida@inpe.br
+
+- **Alan J. P. Calheiros**<br>
+  National Institute for Space Research (INPE/Brazil)<br>
+  alan.calheiros@inpe.br
+
+---
+
+This benchmark is developed and maintained by a dedicated team working on scientific machine learning, reproducible benchmarking, and scalable HPC-based workflows for precipitation nowcasting research in Latin America.
+
+---
 
 ## Key Features
 
