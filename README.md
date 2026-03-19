@@ -34,7 +34,7 @@
 
 ---
 
-This benchmark is developed and maintained by a dedicated team working on scientific machine learning, reproducible benchmarking, and scalable HPC-based workflows for precipitation nowcasting research in Latin America.
+This benchmark is developed and maintained by a team focused on scientific machine learning, reproducible evaluation, and scalable HPC workflows for precipitation nowcasting in Latin America. Its goal is not to deliver a single optimized forecasting solution, but to provide a flexible framework for developing and evaluating regionally adapted models. By enabling systematic comparison of methods, it supports incremental improvements and contributes to more reliable predictions in regions of interest. The benchmark is open to the community, and feedback or contributions are welcome.
 
 ---
 
