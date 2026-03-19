@@ -55,7 +55,7 @@ dependencies = [
     "hydra-core>=1.3",
     "tqdm>=4.66",
     "xarray>=2024.1.0",
-    "zarr>=2.17",
+    "zarr>=2.17,<3",
     "dask>=2024.1.0",
 ]
 
