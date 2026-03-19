@@ -148,5 +148,6 @@ exclude = ["tests/test_output"]
 dev = [
     "black>=26.3.0",
     "build>=1.4.0",
+    "isort>=8.0.1",
     "twine>=6.2.0",
 ]

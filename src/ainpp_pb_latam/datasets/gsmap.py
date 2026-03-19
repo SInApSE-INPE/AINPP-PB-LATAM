@@ -5,7 +5,7 @@ Supports rectangular patching, deterministic/random sampling, and Hydra integrat
 
 import logging
 from pathlib import Path
-from typing import List, Optional, Tuple, Union, Dict
+from typing import Dict, List, Optional, Tuple, Union
 
 import numpy as np
 import torch

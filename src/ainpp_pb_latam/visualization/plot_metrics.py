@@ -1,7 +1,8 @@
+import os
+
 import matplotlib.pyplot as plt
 import numpy as np
-from sklearn.metrics import roc_curve, auc
-import os
+from sklearn.metrics import auc, roc_curve
 
 
 def plot_performance_diagram(summary, output_dir, thresholds):

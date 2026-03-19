@@ -3,8 +3,8 @@ from pathlib import Path
 import pytest
 import torch
 
-from ainpp_pb_latam.utils import EarlyStopping, build_optimizer
 from ainpp_pb_latam._utils.standardization import LogZScoreStandardizer
+from ainpp_pb_latam.utils import EarlyStopping, build_optimizer
 
 
 class _ToyModel(torch.nn.Module):

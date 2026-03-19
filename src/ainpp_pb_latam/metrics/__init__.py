@@ -1,6 +1,6 @@
 import numpy as np
-from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score, roc_curve, auc
 from scipy.stats import pearsonr
+from sklearn.metrics import auc, mean_absolute_error, mean_squared_error, r2_score, roc_curve
 
 EPS = 1e-6
 

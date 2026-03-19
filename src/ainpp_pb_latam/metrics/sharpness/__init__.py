@@ -1,6 +1,7 @@
+import logging
+
 import numpy as np
 from scipy import signal
-import logging
 
 logger = logging.getLogger(__name__)
 

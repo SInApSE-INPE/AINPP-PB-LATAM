@@ -1,7 +1,8 @@
+import os
+
 import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns
-import os
 
 
 def plot_barplots_and_rankings(df, output_dir, metric="CSI"):
@@ -60,7 +61,7 @@ def plot_pr_curve(obs, probs, output_dir):
     """
     Plots Precision-Recall curve.
     """
-    from sklearn.metrics import precision_recall_curve, auc
+    from sklearn.metrics import auc, precision_recall_curve
 
     precision, recall, _ = precision_recall_curve(obs, probs)
     pr_auc = auc(recall, precision)

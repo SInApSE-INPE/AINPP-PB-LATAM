@@ -1,1 +1,1 @@
-from .forecaster import UNetMultiHorizon, UNetAutoRegressive
+from .forecaster import UNetAutoRegressive, UNetMultiHorizon

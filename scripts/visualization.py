@@ -1,10 +1,10 @@
+import json
 import os
 
-
-import json
 import numpy as np
-from ainpp_pb_latam.visualization.runner import VisualizationRunner
+
 from ainpp_pb_latam.visualization.plot_metrics import plot_reliability_diagram, plot_roc_curve
+from ainpp_pb_latam.visualization.runner import VisualizationRunner
 
 test_dir = "./tests/test_output"
 input_dir = os.path.join(test_dir, "data")

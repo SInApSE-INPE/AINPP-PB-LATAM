@@ -1,7 +1,8 @@
 import os
+
+import matplotlib.pyplot as plt
 import torch
 import torch.nn as nn
-import matplotlib.pyplot as plt
 
 
 def save_epoch_sample(model, loader, epoch, device, save_dir="samples"):

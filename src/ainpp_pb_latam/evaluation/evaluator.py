@@ -1,16 +1,17 @@
 import os
-import torch
-import numpy as np
-from tqdm import tqdm
 from pathlib import Path
 
-from ainpp_pb_latam.metrics.continuous import ContinuousMetrics
-from ainpp_pb_latam.metrics.categorical import CategoricalMetrics
-from ainpp_pb_latam.metrics.probabilistic import ProbabilisticMetrics
-from ainpp_pb_latam.metrics.object_based import ObjectBasedMetrics
-from ainpp_pb_latam.metrics.sharpness import SharpnessMetrics
-from ainpp_pb_latam.metrics.consistency import ConsistencyMetrics
+import numpy as np
+import torch
+from tqdm import tqdm
+
 from ainpp_pb_latam.aggregation import Aggregator
+from ainpp_pb_latam.metrics.categorical import CategoricalMetrics
+from ainpp_pb_latam.metrics.consistency import ConsistencyMetrics
+from ainpp_pb_latam.metrics.continuous import ContinuousMetrics
+from ainpp_pb_latam.metrics.object_based import ObjectBasedMetrics
+from ainpp_pb_latam.metrics.probabilistic import ProbabilisticMetrics
+from ainpp_pb_latam.metrics.sharpness import SharpnessMetrics
 
 
 class Evaluator:

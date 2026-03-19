@@ -79,6 +79,7 @@ verification = [
 dev = [
     { name = "black" },
     { name = "build" },
+    { name = "isort" },
     { name = "twine" },
 ]
 
@@ -120,6 +121,7 @@ provides-extras = ["dl", "verification", "all", "dev", "docs"]
 dev = [
     { name = "black", specifier = ">=26.3.0" },
     { name = "build", specifier = ">=1.4.0" },
+    { name = "isort", specifier = ">=8.0.1" },
     { name = "twine", specifier = ">=6.2.0" },
 ]
 

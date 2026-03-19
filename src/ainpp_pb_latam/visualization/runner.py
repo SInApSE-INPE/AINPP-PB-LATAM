@@ -1,12 +1,14 @@
-import os
-import json
 import glob
-import numpy as np
+import json
+import os
+
 import matplotlib.pyplot as plt
-from .style import set_style
-from .plot_metrics import plot_performance_diagram, plot_reliability_diagram, plot_roc_curve
-from .plot_maps import plot_comparison
+import numpy as np
+
 from .animations import create_animation
+from .plot_maps import plot_comparison
+from .plot_metrics import plot_performance_diagram, plot_reliability_diagram, plot_roc_curve
+from .style import set_style
 
 
 class VisualizationRunner:

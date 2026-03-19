@@ -1,10 +1,12 @@
-import hydra
 import os
+
+import hydra
 import torch
 import torch.distributed as dist
+from hydra.utils import instantiate
 from omegaconf import DictConfig
 from torch.utils.data import DataLoader, DistributedSampler
-from hydra.utils import instantiate
+
 from ainpp_pb_latam.datasets import NowcastingDataset
 from ainpp_pb_latam.trainer import Trainer
 

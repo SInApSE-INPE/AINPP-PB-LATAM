@@ -1,6 +1,7 @@
+import logging
+
 import numpy as np
 import scipy.ndimage as ndimage
-import logging
 
 logger = logging.getLogger(__name__)
 EPS = 1e-6

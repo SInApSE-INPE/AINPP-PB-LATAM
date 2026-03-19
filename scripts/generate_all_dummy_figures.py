@@ -7,22 +7,23 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
 import numpy as np
 import pandas as pd
+
+from ainpp_pb_latam.visualization.generate_figures import generate_benchmark_figures
+from ainpp_pb_latam.visualization.plot_advanced import (
+    plot_barplots_and_rankings,
+    plot_fss_by_scale,
+    plot_object_histograms,
+    plot_pr_curve,
+    plot_probability_histogram,
+    plot_spatial_power_spectrum,
+    plot_statistical_consistency,
+)
+from ainpp_pb_latam.visualization.plot_maps import plot_comparison
 from ainpp_pb_latam.visualization.plot_metrics import (
     plot_performance_diagram,
     plot_reliability_diagram,
     plot_roc_curve,
 )
-from ainpp_pb_latam.visualization.plot_maps import plot_comparison
-from ainpp_pb_latam.visualization.plot_advanced import (
-    plot_barplots_and_rankings,
-    plot_probability_histogram,
-    plot_pr_curve,
-    plot_fss_by_scale,
-    plot_spatial_power_spectrum,
-    plot_object_histograms,
-    plot_statistical_consistency,
-)
-from ainpp_pb_latam.visualization.generate_figures import generate_benchmark_figures
 
 
 def main():

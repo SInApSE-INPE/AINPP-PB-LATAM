@@ -1,6 +1,7 @@
-import numpy as np
-from scipy.stats import wasserstein_distance, ks_2samp
 import logging
+
+import numpy as np
+from scipy.stats import ks_2samp, wasserstein_distance
 
 logger = logging.getLogger(__name__)
 

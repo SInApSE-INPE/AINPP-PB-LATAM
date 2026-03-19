@@ -7,8 +7,8 @@ sequence of frames is real or fake at the patch level.
 """
 
 import logging
-from typing import List, Sequence
 from functools import partial
+from typing import List, Sequence
 
 import torch
 import torch.nn as nn

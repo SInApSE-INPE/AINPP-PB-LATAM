@@ -1,11 +1,12 @@
 from __future__ import annotations
 
+import logging
+
+import timm
 import torch
 import torch.nn as nn
-import timm
-from ainpp_pb_latam.layers.blocks import Up
 
-import logging
+from ainpp_pb_latam.layers.blocks import Up
 
 logger = logging.getLogger(__name__)
 

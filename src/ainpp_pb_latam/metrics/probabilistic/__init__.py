@@ -1,6 +1,7 @@
-import numpy as np
-from sklearn.metrics import brier_score_loss, roc_auc_score, auc, precision_recall_curve
 import logging
+
+import numpy as np
+from sklearn.metrics import auc, brier_score_loss, precision_recall_curve, roc_auc_score
 
 logger = logging.getLogger(__name__)
 EPS = 1e-6

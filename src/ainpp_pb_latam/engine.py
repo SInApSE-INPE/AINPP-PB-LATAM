@@ -3,16 +3,16 @@ from pathlib import Path
 from typing import Optional
 
 import torch
+import torch.distributed as dist
 import torch.nn as nn
 import torch.optim as optim
-import torch.distributed as dist
+from omegaconf import DictConfig
 from torch.utils.data import DataLoader
 from torch.utils.data.distributed import DistributedSampler
-from omegaconf import DictConfig
 from tqdm import tqdm
 
-from ainpp_pb_latam.utils import EarlyStopping, save_epoch_checkpoint
 from ainpp_pb_latam.distributed import is_main_process
+from ainpp_pb_latam.utils import EarlyStopping, save_epoch_checkpoint
 from ainpp_pb_latam.visualization.samples import save_epoch_sample
 
 logger = logging.getLogger(__name__)

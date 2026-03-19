@@ -6,20 +6,19 @@ loading of configuration via Hydra, instantiation of datasets and models,
 and execution of the training engine.
 """
 
-import os
 import multiprocessing
+import os
 
+import hydra
 import torch
 import torch.nn as nn
 import torch.optim as optim
+from hydra.utils import instantiate
+from omegaconf import DictConfig
 from torch.utils.data import DataLoader
 from torch.utils.data.distributed import DistributedSampler
-from hydra.utils import instantiate
-import hydra
-from omegaconf import DictConfig
 
-
-from ainpp_pb_latam.distributed import setup_distributed, cleanup_distributed, is_main_process
+from ainpp_pb_latam.distributed import cleanup_distributed, is_main_process, setup_distributed
 from ainpp_pb_latam.engine_gan import run_gan_training
 
 

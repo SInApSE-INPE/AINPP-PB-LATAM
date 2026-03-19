@@ -1,7 +1,8 @@
-import matplotlib.pyplot as plt
-import matplotlib.animation as animation
-import numpy as np
 import os
+
+import matplotlib.animation as animation
+import matplotlib.pyplot as plt
+import numpy as np
 
 
 def create_animation(target_seq, pred_seq, output_path, fps=5, cmap="viridis"):
