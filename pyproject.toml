@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "ainpp-pb-latam"
-version = "1.0.0b3"
+version = "1.0.0b4"
 description = "The Artificial Intelligence for Nowcasting Pilot Project - Precipitation Benchmark for Latin America (AINPP-PB-LATAM)."
 readme = "README.md"
 requires-python = ">=3.10"

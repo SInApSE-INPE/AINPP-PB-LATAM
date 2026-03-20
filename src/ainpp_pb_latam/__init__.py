@@ -1,3 +1,6 @@
-__version__ = "1.0.0b3"
+from importlib.metadata import version, PackageNotFoundError
 
-from . import datasets, engine, layers, losses, models, utils
+try:
+    __version__ = version("ainpp-pb-latam")
+except PackageNotFoundError:
+    __version__ = "unknown"
