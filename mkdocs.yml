@@ -6,20 +6,7 @@ repo_name: SInApSE-INPE/AINPP-PB-LATAM
 edit_uri: edit/main/docs/
 docs_dir: docs
 theme:
-  name: material
-  features:
-    - navigation.tabs
-    - navigation.instant
-    - toc.integrate
-    - content.code.copy
-    - content.code.annotate
-    - content.tabs.link
-  palette:
-    - scheme: default
-      primary: blue
-      accent: deep orange
-  icon:
-    repo: fontawesome/brands/github
+  name: readthedocs
 
 plugins:
   - search
