@@ -34,7 +34,7 @@ class Inferencer:
         Args:
             model (nn.Module): The pre-trained and loaded model (already in eval mode).
             config (DictConfig): Root configuration (used cfg.inference).
-            device (torch.device): CUDA ou CPU.
+            device (torch.device): CUDA or CPU.
         """
         self.model = model
         self.config = config.inference
@@ -49,12 +49,12 @@ class Inferencer:
         Receives a single sample tensor and saves the prediction in a standardized structure.
 
         Args:
-            input_tensor (torch.Tensor): O tensor de entrada, formato (1, Tin, C, H, W).
-            base_timestamp (str): String com a data-hora inicial no formato YYYYMMDD_HHMM.
-            coords (dict, opcional): Lats and Lons to inject into xarray (if applicable).
+            input_tensor (torch.Tensor): Input tensor with shape (1, Tin, C, H, W).
+            base_timestamp (str): Initial timestamp string in YYYYMMDD_HHMM format.
+            coords (dict, optional): Lats and Lons to inject into xarray (if applicable).
 
         Returns:
-            Path: Caminho absoluto onde o arquivo foi salvo.
+            Path: Absolute path of the saved file.
         """
         if input_tensor.dim() == 4:
             input_tensor = input_tensor.unsqueeze(0)  # Forces batch dimension
@@ -113,13 +113,13 @@ class Inferencer:
     ) -> Path:
         """
         Performs inference over an entire dataset (Batch by Batch) and writes the result
-        diretamente para um disco Zarr (append), altamente otimizado para supercomputador.
+        directly to a Zarr store on disk by appending batches for HPC workloads.
 
         Args:
-            dataloader (DataLoader): PyTorch Dataloader iterando na ordem do tempo.
+            dataloader (DataLoader): PyTorch DataLoader iterating in temporal order.
 
         Returns:
-            Path: O caminho para o Dataset Zarr salvo.
+            Path: Path to the saved Zarr dataset.
         """
         output_zarr = Path(self.config.historical.zarr_store)
         output_zarr.parent.mkdir(parents=True, exist_ok=True)

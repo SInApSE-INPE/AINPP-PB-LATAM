@@ -41,9 +41,9 @@ class ConvLSTM2D(nn.Module):
         """
         Args:
             x: (B, T, C, H, W) - input sequence
-            hidden_state: lista de tuplas [(h, c)] para cada camada
+            hidden_state: list of tuples [(h, c)] for each layer
         Returns:
-            layer_output_list: lista com outputs de cada camada
+            layer_output_list: list of outputs from each layer
             last_state_list: list with last states of each layer
         """
         batch_size, seq_len, _, height, width = x.size()
@@ -76,7 +76,7 @@ class ConvLSTM2D(nn.Module):
         return layer_output_list, last_state_list
 
     def _init_hidden(self, batch_size, image_size):
-        """Inicializa hidden states para todas as camadas."""
+        """Initializes hidden states for all layers."""
         init_states = []
         for i in range(self.num_layers):
             init_states.append(self.cell_list[i].init_hidden(batch_size, image_size))

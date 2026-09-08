@@ -7,10 +7,10 @@ import torch.distributed as dist
 def setup_distributed():
     """
     Initializes the process group if torchrun environment variables exist.
-    Retorna:
-        ddp_enabled (bool): Se o DDP foi ativado.
+    Returns:
+        ddp_enabled (bool): Whether DDP was enabled.
         local_rank (int): The GPU ID in this machine (0, 1, ...).
-        device (torch.device): O dispositivo configurado.
+        device (torch.device): The configured device.
     """
     if "RANK" in os.environ and "WORLD_SIZE" in os.environ:
         # Estamos rodando via torchrun

@@ -344,7 +344,7 @@ python main.py task=train dataset.train_loader.batch_size=4 model.hidden_channel
 
 ## Acknowledgements
 
-The authors wish to thank the National Council for Scientific and Technological Development (CNPq, processes 438310/2018-7, 141451/2021-1 and 444205/2024-1), the Brazilian Federal Agency for Support and Evaluation of Higher Education (CAPES), the National Institute for Space Research (INPE) and the Brazilian Space Agency (AEB) of the Ministry of Science, Technology and Innovation (MCTI) for their financial support. The project was supported by the \textit{Laboratório Nacional de Computação Científica} (LNCC, MCTI/Brazil) through the resources of the Santos Dumont supercomputer in the projects IDeepS and CPTEC. This work was also supported by the 4th Research Announcement on the Earth Observations of the Japan Aerospace Exploration Agency (JAXA) (ER4GPN102) and World Meteorological Organization (WMO).
+The authors wish to thank the National Council for Scientific and Technological Development (CNPq, processes 438310/2018-7, 141451/2021-1 and 444205/2024-1), the Brazilian Federal Agency for Support and Evaluation of Higher Education (CAPES), the National Institute for Space Research (INPE) and the Brazilian Space Agency (AEB) of the Ministry of Science, Technology and Innovation (MCTI) for their financial support. The project was supported by the National Laboratory for Scientific Computing (LNCC, MCTI/Brazil) through the resources of the Santos Dumont supercomputer in the projects IDeepS and CPTEC. This work was also supported by the 4th Research Announcement on the Earth Observations of the Japan Aerospace Exploration Agency (JAXA) (ER4GPN102) and World Meteorological Organization (WMO).
 
 ## License
 

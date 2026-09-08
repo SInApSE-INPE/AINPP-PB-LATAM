@@ -30,7 +30,7 @@ class ConvLSTMCell(nn.Module):
     ) -> Tuple[torch.Tensor, torch.Tensor]:
         """
         Args:
-            x: (B, C_in, H, W) - entrada atual
+            x: (B, C_in, H, W) - current input
             hidden_state: tuple (h, c) where h and c are (B, C_hidden, H, W)
         Returns:
             h_next, c_next: next hidden and cell states
@@ -59,7 +59,7 @@ class ConvLSTMCell(nn.Module):
     def init_hidden(
         self, batch_size: int, image_size: Tuple[int, int]
     ) -> Tuple[torch.Tensor, torch.Tensor]:
-        """Inicializa estados hidden e cell com zeros."""
+        """Initializes hidden and cell states with zeros."""
         height, width = image_size
         device = next(self.parameters()).device
         return (
