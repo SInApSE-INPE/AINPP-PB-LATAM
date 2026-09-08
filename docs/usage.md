@@ -1,5 +1,7 @@
 # Workflow Examples
 
+For a recipe for each available architecture, see [Model Usage Examples](model_examples.md).
+
 See the [complete parameter reference](parameters.md) for defaults, overrides,
 and implementation status.
 
