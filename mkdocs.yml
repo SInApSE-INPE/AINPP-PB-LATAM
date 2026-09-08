@@ -42,6 +42,7 @@ nav:
   - Architecture: architecture.md
   - Training: training.md
   - Usage: usage.md
+  - Parameters: parameters.md
   - Publishing: publishing.md
   - API:
       - Overview: api.md

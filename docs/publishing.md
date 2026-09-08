@@ -1,6 +1,6 @@
 # Publishing Documentation
 
-This project uses `MkDocs` with the `Material` theme and publishes the generated static site to GitHub Pages through GitHub Actions.
+This project uses `MkDocs` with the `Read the Docs` theme and publishes the generated static site to GitHub Pages through GitHub Actions.
 
 ## Local Preview
 

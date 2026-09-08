@@ -1,5 +1,11 @@
 # Training Models
 
+See the [complete parameter reference](parameters.md) for defaults, overrides,
+and implementation status.
+
+For copyable end-to-end commands using the WPR dataset, see
+[Workflow Examples](usage.md).
+
 ## Overview
 
 This chapter documents the training stack used by AINPP-PB-LATAM from the point of view of the current codebase. It focuses on what is actually configurable today through Hydra and what that means for scientific benchmark experiments.
@@ -216,8 +222,8 @@ If the Zarr store contains alternative variable names:
 ```bash
 python main.py task=train \
   model=unet/direct \
-  dataset.dataset.input_var=gsmap_nrt \
-  dataset.dataset.target_var=gsmap_mvk
+  +dataset.dataset.input_var=gsmap_nrt \
+  +dataset.dataset.target_var=gsmap_mvk
 ```
 
 ### Dataloader Parameters
