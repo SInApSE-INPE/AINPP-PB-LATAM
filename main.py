@@ -78,13 +78,26 @@ def _run_train(cfg: DictConfig) -> None:
     )
 
 
+def _hydra_model_choice() -> str | None:
+    """Returns the selected model config group (e.g. 'unet/direct'), if running under Hydra."""
+    from hydra.core.hydra_config import HydraConfig
+
+    try:
+        return HydraConfig.get().runtime.choices.get("model")
+    except ValueError:
+        return None
+
+
 def _run_evaluate(cfg: DictConfig) -> None:
     import torch
     from torch.utils.data import DataLoader
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-    ds_kwargs = cfg.dataset.overrides.get("test", {}) if cfg.dataset.get("overrides") else {}
+    ds_kwargs = cfg.dataset.overrides.get("test") if cfg.dataset.get("overrides") else None
+    if not ds_kwargs or ds_kwargs.get("group") != "test":
+        # Without this the dataset would silently default to the training group.
+        raise ValueError("dataset.overrides.test.group must be 'test' for benchmark evaluation.")
     test_dataset = instantiate(cfg.dataset.dataset, **ds_kwargs)
     test_loader = DataLoader(
         dataset=test_dataset,
@@ -102,12 +115,22 @@ def _run_evaluate(cfg: DictConfig) -> None:
         else:
             LOG.warning("Checkpoint not found at %s; evaluating fresh model", checkpoint_path)
 
+    std_cfg = cfg.evaluation.get("standardization", {})
+    standardizer = None
+    if std_cfg.get("enabled", False):
+        from ainpp_pb_latam._utils.standardization import LogZScoreStandardizer
+
+        standardizer = LogZScoreStandardizer(
+            params_dir=std_cfg.params_dir, region=cfg.evaluation.region, strict=True
+        )
+
     evaluator = Evaluator(
         model=model,
         test_loader=test_loader,
         config=cfg,
-        standardizer=None,
+        standardizer=standardizer,
         device=device,
+        model_name=cfg.evaluation.get("model_name") or _hydra_model_choice(),
     )
     df_summary = evaluator.evaluate()
 

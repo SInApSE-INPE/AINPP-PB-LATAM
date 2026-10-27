@@ -4,7 +4,7 @@ import numpy as np
 
 
 class LogZScoreStandardizer:
-    def __init__(self, mean_log=None, std_log=None, params_dir=None, region=None):
+    def __init__(self, mean_log=None, std_log=None, params_dir=None, region=None, strict=False):
         """
         Initialize the LogZScoreStandardizer.
 
@@ -13,12 +13,18 @@ class LogZScoreStandardizer:
             std_log (float or np.ndarray, optional): Std of the log-transformed data.
             params_dir (str, optional): Directory to load params from if mean/std not provided.
             region (str, optional): Region name to find the correct param files.
+            strict (bool): If True, raise instead of falling back to mean=0/std=1 when the
+                parameters cannot be loaded. Note that the fallback is NOT an identity
+                mapping (inverse_transform still applies expm1), so evaluation must use strict.
         """
+        self.strict = strict
         if mean_log is not None and std_log is not None:
             self.mean_log = mean_log
             self.std_log = std_log
         elif params_dir is not None and region is not None:
             self.load_params(params_dir, region)
+        elif strict:
+            raise ValueError("LogZScoreStandardizer(strict=True) needs mean/std or params_dir.")
         else:
             # Default to identity if nothing provided (or raise error depending on strictness)
             print("Warning: LogZScoreStandardizer initialized without parameters. Using Identity.")
@@ -36,6 +42,8 @@ class LogZScoreStandardizer:
             print(f"Loaded standardization params from {params_dir}")
             print(f"Mean: {self.mean_log}, Std: {self.std_log}")
         except Exception as e:
+            if self.strict:
+                raise
             print(f"Error loading parameters: {e}. Using identity.")
             self.mean_log = 0.0
             self.std_log = 1.0

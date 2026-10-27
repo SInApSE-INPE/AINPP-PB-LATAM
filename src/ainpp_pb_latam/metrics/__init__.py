@@ -54,8 +54,9 @@ class Metrics:
         results = {}
 
         for thresh in thresholds:
-            pred_bin = (pred >= thresh).astype(int)
-            target_bin = (target >= thresh).astype(int)
+            # Boolean arrays: ``~`` on int arrays is a bitwise NOT and corrupts the counts.
+            pred_bin = pred >= thresh
+            target_bin = target >= thresh
 
             # Contingency Table
             # TP: Pred=1, Target=1
@@ -63,10 +64,10 @@ class Metrics:
             # FN: Pred=0, Target=1
             # TN: Pred=0, Target=0
 
-            hits = (pred_bin & target_bin).sum()  # TP
-            misses = ((~pred_bin) & target_bin).sum()  # FN
-            false_alarms = (pred_bin & (~target_bin)).sum()  # FP
-            correct_negatives = ((~pred_bin) & (~target_bin)).sum()  # TN
+            hits = int((pred_bin & target_bin).sum())  # TP
+            misses = int(((~pred_bin) & target_bin).sum())  # FN
+            false_alarms = int((pred_bin & (~target_bin)).sum())  # FP
+            correct_negatives = int(((~pred_bin) & (~target_bin)).sum())  # TN
 
             total = hits + misses + false_alarms + correct_negatives
 

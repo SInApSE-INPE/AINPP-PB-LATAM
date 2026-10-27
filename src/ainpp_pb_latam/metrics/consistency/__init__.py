@@ -8,7 +8,7 @@ logger = logging.getLogger(__name__)
 
 class ConsistencyMetrics:
     @staticmethod
-    def compute(pred: np.ndarray, target: np.ndarray) -> dict:
+    def compute(pred: np.ndarray, target: np.ndarray, seed: int = 0) -> dict:
         """
         Measures the statistical consistency and distributional realism of the model
         outputs compared to the ground truth.
@@ -22,7 +22,8 @@ class ConsistencyMetrics:
         # Using subsampling if matrix is too large for fast compute
         max_samples = 100000
         if len(p_flat) > max_samples:
-            idx = np.random.choice(len(p_flat), max_samples, replace=False)
+            # Fixed seed keeps the benchmark reproducible across runs
+            idx = np.random.default_rng(seed).choice(len(p_flat), max_samples, replace=False)
             p_samp = p_flat[idx]
             t_samp = t_flat[idx]
         else:

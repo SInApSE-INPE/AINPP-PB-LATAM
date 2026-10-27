@@ -74,3 +74,9 @@ overrides:
     # Set to 'null' to scan the entire dataset deterministicallly.
     # Set to an integer (e.g., 500) to limit validation time.
     steps_per_epoch: 500
+
+  test:
+    group: "test"            # Held-out year (2024). Never tune on this split.
+    stride: 1                # Every hourly issuance time
+    steps_per_epoch: null    # Deterministic scan of the whole split
+    return_valid_mask: true  # Masks missing targets and overlapping patch pixels

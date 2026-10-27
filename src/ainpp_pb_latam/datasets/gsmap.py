@@ -55,6 +55,7 @@ class AINPPPBLATAMDataset(Dataset[TensorPair]):
         target_var: str = "gsmap_mvk",
         dtype: str = "float32",
         return_metadata: bool = False,
+        return_valid_mask: bool = False,
     ) -> None:
         """
         Initializes the dataset.
@@ -79,7 +80,13 @@ class AINPPPBLATAMDataset(Dataset[TensorPair]):
             input_var (str): Variable name for input data.
             target_var (str): Variable name for target data.
             dtype (str): Target PyTorch data type (e.g., 'float32', 'float16').
-            return_metadata (bool): If True, __getitem__ returns (x, y, meta).
+            return_metadata (bool): If True, __getitem__ also returns a metadata dict.
+            return_valid_mask (bool): If True, __getitem__ also returns a boolean mask
+                shaped like ``y`` that is True only where the target is not NaN and the
+                pixel is "owned" by this patch (overlapping patches never count the same
+                domain pixel twice). Intended for evaluation in deterministic mode.
+
+        Returns order of __getitem__: ``(x, y[, mask][, meta])``.
         """
         super().__init__()
 
@@ -96,6 +103,7 @@ class AINPPPBLATAMDataset(Dataset[TensorPair]):
         self.input_var = input_var
         self.target_var = target_var
         self.return_metadata = return_metadata
+        self.return_valid_mask = return_valid_mask
 
         # Type conversion
         self.dtype = getattr(torch, dtype) if isinstance(dtype, str) else dtype
@@ -123,9 +131,10 @@ class AINPPPBLATAMDataset(Dataset[TensorPair]):
         if self.input_var not in self.ds.variables:
             raise KeyError(f"Input variable '{self.input_var}' not found in dataset.")
 
-        # Lazy loading + fillna (NaN -> 0.0)
+        # Lazy loading. Input NaNs -> 0.0; target NaNs are kept until __getitem__ so that
+        # missing observations can be masked out of the evaluation instead of counted as "no rain".
         self.input_da = self.ds[self.input_var].fillna(0.0)
-        self.target_da = self.ds[self.target_var].fillna(0.0)
+        self.target_da = self.ds[self.target_var]
 
         # 3. Domain Dimensions
         self.H = int(self.ds.sizes["lat"])
@@ -189,6 +198,23 @@ class AINPPPBLATAMDataset(Dataset[TensorPair]):
             stride_h=self.stride_h,
             stride_w=self.stride_w,
         )
+        self.ownership_masks = self._build_ownership_masks() if self.return_valid_mask else None
+
+    def _build_ownership_masks(self) -> List[np.ndarray]:
+        """
+        Assigns every domain pixel to the first patch that covers it.
+
+        The edge-snapped patch grid overlaps near the borders; without this, pixels in
+        the overlap would be counted twice by the evaluation.
+        """
+        owner = np.full((self.H, self.W), -1, dtype=np.int64)
+        for k, (i0, j0) in enumerate(self.patch_origins):
+            window = owner[i0 : i0 + self.patch_h, j0 : j0 + self.patch_w]
+            window[window == -1] = k
+        return [
+            owner[i0 : i0 + self.patch_h, j0 : j0 + self.patch_w] == k
+            for k, (i0, j0) in enumerate(self.patch_origins)
+        ]
 
     @staticmethod
     def _build_patch_grid(height, width, patch_h, patch_w, stride_h, stride_w) -> List[PatchOrigin]:
@@ -212,17 +238,18 @@ class AINPPPBLATAMDataset(Dataset[TensorPair]):
             return int(self.steps_per_epoch)
         return len(self.valid_t0) * len(self.patch_origins)
 
-    def __getitem__(self, idx: int) -> Union[TensorPair, Tuple[torch.Tensor, torch.Tensor, Dict]]:
+    def __getitem__(self, idx: int) -> Tuple[Union[torch.Tensor, Dict], ...]:
         # Sampling Logic
         if self.steps_per_epoch is not None:
             # Random Sampling (Training Mode)
             t0 = self.valid_t0[int(self.rng.integers(0, len(self.valid_t0)))]
-            i0, j0 = self.patch_origins[int(self.rng.integers(0, len(self.patch_origins)))]
+            patch_idx = int(self.rng.integers(0, len(self.patch_origins)))
         else:
             # Deterministic Iteration (Validation Mode)
             n_patches = len(self.patch_origins)
             t0 = self.valid_t0[idx // n_patches]
-            i0, j0 = self.patch_origins[idx % n_patches]
+            patch_idx = idx % n_patches
+        i0, j0 = self.patch_origins[patch_idx]
 
         # Slicing Dimensions
         ph, pw = self.patch_h, self.patch_w
@@ -240,12 +267,19 @@ class AINPPPBLATAMDataset(Dataset[TensorPair]):
         y_np = self.target_da.isel(
             time=slice(t_in_end, t_out_end), lat=slice(i0, i1), lon=slice(j0, j1)
         ).to_numpy()
+        y_valid = np.isfinite(y_np)
+        y_np = np.where(y_valid, y_np, 0.0)
 
         # Convert to Tensor (Add channel dim: T, C, H, W)
         x = torch.from_numpy(x_np[:, None, :, :]).to(dtype=self.dtype)
         y = torch.from_numpy(y_np[:, None, :, :]).to(dtype=self.dtype)
 
+        out: List[Union[torch.Tensor, Dict]] = [x, y]
+        if self.return_valid_mask:
+            assert self.ownership_masks is not None
+            mask_np = y_valid & self.ownership_masks[patch_idx][None, :, :]
+            out.append(torch.from_numpy(mask_np[:, None, :, :]))
         if self.return_metadata:
-            return x, y, {"t0": t0, "i0": i0, "j0": j0, "ph": ph, "pw": pw}
+            out.append({"t0": t0, "i0": i0, "j0": j0, "ph": ph, "pw": pw})
 
-        return x, y
+        return tuple(out)

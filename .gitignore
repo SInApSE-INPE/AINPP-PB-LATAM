@@ -51,3 +51,5 @@ Thumbs.db
 .github/agents/
 src/ainpp_pb_latam.egg-info/
 src/ainpp_pb_latam.egg-info/**
+# Local virtual environment
+.venv/

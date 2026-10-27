@@ -1,0 +1,7 @@
+# Lagrangian persistence baseline (no training needed). Requires: pip install .[baselines]
+_target_: ainpp_pb_latam.models.optical_flow.forecaster.OpticalFlowForecaster
+
+output_timesteps: ${output_timesteps}
+motion_method: "LK"     # pysteps motion method: LK, DARTS, proesmans, ...
+n_motion_frames: 3      # most recent input frames used to estimate the motion field
+log_transform: true     # estimate motion on log1p(rain)

@@ -1,0 +1,4 @@
+# Eulerian persistence baseline (no training needed): repeats the last input frame.
+_target_: ainpp_pb_latam.models.persistence.forecaster.PersistenceForecaster
+
+output_timesteps: ${output_timesteps}

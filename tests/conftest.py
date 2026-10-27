@@ -6,8 +6,7 @@ from typing import Tuple
 import numpy as np
 import pytest
 import torch
-import zarr
-from zarr.storage import DirectoryStore
+import xarray as xr
 
 
 @pytest.fixture(autouse=True)
@@ -56,11 +55,13 @@ def small_zarr(tmp_path: Path) -> Path:
     data_out = np.random.rand(len(time), len(lat), len(lon)).astype(np.float32)
 
     zarr_path = tmp_path / "gsmap_small.zarr"
-    store = DirectoryStore(str(zarr_path))
-
-    for group in ("train", "validation", "test"):
-        g = zarr.group(store=store, path=group, overwrite=True)
-        g.create_dataset("gsmap_nrt", data=data_in, chunks=data_in.shape, overwrite=True)
-        g.create_dataset("gsmap_mvk", data=data_out, chunks=data_out.shape, overwrite=True)
+    coords = {"time": time, "lat": lat, "lon": lon}
+    dims = ("time", "lat", "lon")
+    ds = xr.Dataset(
+        {"gsmap_nrt": (dims, data_in), "gsmap_mvk": (dims, data_out)},
+        coords=coords,
+    )
+    for i, group in enumerate(("train", "validation", "test")):
+        ds.to_zarr(zarr_path, group=group, mode="w" if i == 0 else "a", consolidated=True)
 
     return zarr_path
