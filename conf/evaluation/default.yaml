@@ -3,19 +3,41 @@
 # ==============================================================================
 region: ainpp-amazon-basin
 checkpoint: "" # Passado via CLI usualmente
+output_dir: outputs/evaluation
+
+# Name used in the results table. If null, it is taken from the Hydra model choice
+# (e.g. "unet/direct") or from model._target_.
+model_name: null
 
 # Thresholds in mm/h that dictate event occurrence
 thresholds_mm_h: [0.1, 1.0, 5.0, 10.0]
 
-# Pre-defined observation times (Used loosely if dataset dictates it)
-lead_times_min: [10, 20, 30, 40, 50, 60]
+# Temporal resolution of the target (GSMaP is hourly). Lead k is reported as +k*time_step_min.
+time_step_min: 60
+
+# Fractions Skill Score neighbourhood scales (km) on a regular grid of grid_res_deg degrees
+fss_scales_km: [11.1, 55.5, 111.0, 222.0]
+grid_res_deg: 0.1
+
+# 'deterministic' (mm/h fields) or 'probability' (exceedance probabilities in [0, 1]).
+# Probabilistic metrics are only computed for 'probability' forecasts.
+forecast_type: deterministic
+
+# Set enabled: true only if the model was trained on log-zscore standardized targets;
+# predictions are then inverted to mm/h before scoring.
+standardization:
+  enabled: false
+  params_dir: null
 
 # --- Modular Evaluation Branches ---
-categorical: true
+# Pooled over the whole test set
 continuous: true
-probabilistic: true
+categorical: true
+fss: true
+# Per-batch diagnostics (reported as mean/std over batches)
 object_based: true
 sharpness: true
 consistency: true
+probabilistic: false
 
 max_batches: null
