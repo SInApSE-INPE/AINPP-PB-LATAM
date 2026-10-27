@@ -12,7 +12,7 @@ from torch.utils.data.distributed import DistributedSampler
 from tqdm import tqdm
 
 from ainpp_pb_latam.distributed import is_main_process
-from ainpp_pb_latam.utils import EarlyStopping, save_epoch_checkpoint
+from ainpp_pb_latam.utils import EarlyStopping, save_epoch_checkpoint, set_loader_epoch
 from ainpp_pb_latam.visualization.samples import save_epoch_sample
 
 logger = logging.getLogger(__name__)
@@ -62,9 +62,10 @@ def run_training(
         print(f"Starting training for {epochs} epochs...")
 
     for epoch in range(1, epochs + 1):
-        # DDP Requirement: set_epoch ensures the shuffle seed changes every epoch.
-        # Without this, the data order would be identical across all epochs.
-        if train_sampler is not None:
+        # set_epoch ensures the random sampling (dataset) and the DDP shuffle (sampler)
+        # change every epoch. Without this, every epoch would see the same samples.
+        set_loader_epoch(train_loader, epoch)
+        if train_sampler is not None and train_sampler is not train_loader.sampler:
             train_sampler.set_epoch(epoch)
 
         model.train()

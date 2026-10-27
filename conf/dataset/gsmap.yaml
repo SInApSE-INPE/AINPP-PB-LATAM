@@ -66,13 +66,14 @@ overrides:
   train:
     group: "train"
     stride: 1             # Temporal stride between samples (dense sampling)
-    steps_per_epoch: 500  # Number of batches per epoch (Random Sampling)
+    steps_per_epoch: 500  # Number of SAMPLES (not batches) per epoch, random sampling
 
   validation:
     group: "validation"
     stride: 6             # Temporal stride (sparser sampling for eval)
     # Set to 'null' to scan the entire dataset deterministicallly.
-    # Set to an integer (e.g., 500) to limit validation time.
+    # Set to an integer (e.g., 500) to limit validation time: a fixed, reproducible
+    # random subset of that many samples (the same in every epoch).
     steps_per_epoch: 500
 
   test:
