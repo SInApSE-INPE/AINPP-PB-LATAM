@@ -45,7 +45,7 @@ python main.py task=train training=default model=unet/direct \
 | `task` | `train` | `train`, `infer`, or `evaluate`. The unified CLI does not provide `task=visualize`. |
 | `checkpoint` | `null` | Weights file for inference/evaluation; must match the architecture. Does not resume training. A missing file results in a warning and a model with fresh weights. |
 | `model` | `unet/direct` | Options: `unet/direct`, `unet/autoregressive`, `convlstm/direct`, `afno/direct`, `resnet50/direct`, `inceptionv4/direct`, `xception/direct`. |
-| `training` | `gan` | Profiles: `default` and `gan`. For supervised training, explicitly use `training=default`. The CLI calls the supervised engine for both. |
+| `training` | `default` | Profiles: `default` (supervised) and `gan`. `task=train` only accepts `training.mode=supervised`; `training=gan` is for `scripts/train_gan.py`. |
 | `dataset` | `gsmap` | Configures the dataset and loaders; does not automatically select the WPR store. |
 | `loss` | `hybrid_mse_ssim` | See the loss catalog below. |
 | `discriminator` | `patchgan` | Available configuration, but not instantiated by training in `main.py`. |
@@ -140,7 +140,7 @@ already passes `shuffle=False` explicitly for evaluation/historical inference.
 
 | Field | `default` / `gan` | Effect in the current CLI |
 | --- | --- | --- |
-| `mode` | `supervised` / `gan` | Label; does not select the engine in `main.py`. |
+| `mode` | `supervised` / `gan` | `task=train` raises an error unless it is `supervised`. |
 | `epochs` | `50` / `100` | Maximum epoch count; positive integer. |
 | `lr` | `0.001` / absent | Adam learning rate; takes precedence over `lr_g` if present. |
 | `lr_g` | absent / `0.0002` | Fallback learning rate for the CLI's single optimizer. |
@@ -212,21 +212,22 @@ tensor.
 
 ### AFNO
 
-The temporal fields exist in the YAML; the others require `+model.<field>=...`.
+`input_timesteps`, `output_timesteps`, `img_size`, `patch_size` and `nonnegativity` exist in the YAML (override with `model.<field>=...`); the others require `+model.<field>=...`.
 
 | Field | Default | Usage/constraint |
 | --- | --- | --- |
 | `input_timesteps` | Global `12` (Python: `6`) | Frames stacked at the input. |
 | `output_timesteps` | Global `6` | Output frames. |
-| `img_size` | Python `[880,970]` | Must match the height/width of the supplied data; use `[320,320]` for the default dataset patches. |
+| `img_size` | YAML: dataset `[patch_height, patch_width]` | Interpolated from the dataset patch size; inputs of another size raise an error. |
 | `input_channels` | Python `1` | Channels per input frame. |
 | `output_channels` | Python `1` | Channels per predicted frame. |
 | `embed_dim` | Python `256` | Embedding dimension, divisible by `num_blocks`. |
 | `depth` | Python `8` | Number of AFNO blocks. |
-| `patch_size` | Python `10` | Internal network patch size; must divide both `img_size` dimensions. This is not the dataset crop size. |
+| `patch_size` | YAML `10` | Internal network patch size; must divide both `img_size` dimensions. This is not the dataset crop size. |
 | `num_blocks` | Python `8` | Channel partitions in the spectral operation. |
+| `nonnegativity` | YAML `relu` | `relu`, `softplus` or `none` applied to the output. |
 
-Example: `model=afno/direct '+model.img_size=[320,320]' +model.depth=4`.
+Example: `model=afno/direct +model.depth=4`.
 
 ### ResNet50, InceptionV4, and Xception
 

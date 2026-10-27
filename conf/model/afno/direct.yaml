@@ -2,4 +2,9 @@ _target_: ainpp_pb_latam.models.afno.forecaster.AFNO2D
 
 input_timesteps: ${input_timesteps}
 output_timesteps: ${output_timesteps}
-
+# Spectral weights are sized for the input grid: tie it to the dataset patch size.
+img_size:
+  - ${dataset.dataset.patch_height}
+  - ${dataset.dataset.patch_width}
+patch_size: 10          # internal token size; must divide both img_size dimensions
+nonnegativity: "relu"   # relu | softplus | none

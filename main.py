@@ -42,6 +42,13 @@ def _run_train(cfg: DictConfig) -> None:
     import torch.nn as nn
     from torch.utils.data import DistributedSampler
 
+    if cfg.training.get("mode", "supervised") != "supervised":
+        # The supervised engine would otherwise run silently with GAN hyperparameters.
+        raise ValueError(
+            f"task=train runs supervised training but training.mode='{cfg.training.mode}'. "
+            "Use training=default, or scripts/train_gan.py for adversarial training."
+        )
+
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     # Data

@@ -45,10 +45,13 @@ class AFNO2D(nn.Module):
         depth: int = 8,
         patch_size: int = 10,
         num_blocks: int = 8,
+        nonnegativity: str = "relu",
     ):
         """
         Args:
-            img_size (Tuple[int, int]): Dimensions of the input grid (H, W).
+            img_size (Tuple[int, int]): Dimensions of the input grid (H, W). The spectral
+                weights are sized for this grid, so inputs must have exactly this size
+                (the Hydra config ties it to the dataset patch size).
             input_timesteps (int): Number of input time frames (Tin).
             input_channels (int): Number of channels per input frame. Defaults to 1.
             output_timesteps (int): Number of output time frames (Tout).
@@ -57,12 +60,24 @@ class AFNO2D(nn.Module):
             depth (int): Number of AFNO layers/blocks.
             patch_size (int): Size of the patches (must divide H and W).
             num_blocks (int): Number of frequency blocks in the AFNO layer.
+            nonnegativity (str): 'relu', 'softplus' or 'none' applied to the output, so
+                precipitation is non-negative as in the other forecasters.
         """
         super().__init__()
         logger.info("Initializing AFNO2D forecaster.")
 
-        self.img_size = img_size
+        if img_size is None or len(img_size) != 2:
+            raise ValueError(
+                f"img_size must be (H, W); got {img_size}. Set dataset patch_height/width."
+            )
+        if img_size[0] % patch_size or img_size[1] % patch_size:
+            raise ValueError(f"patch_size={patch_size} must divide img_size={tuple(img_size)}.")
+        if nonnegativity not in ("relu", "softplus", "none"):
+            raise ValueError(f"Unknown nonnegativity '{nonnegativity}'.")
+
+        self.img_size = (int(img_size[0]), int(img_size[1]))
         self.patch_size = patch_size
+        self.nonnegativity = nonnegativity
         self.input_timesteps = input_timesteps
         self.input_channels = input_channels
         self.output_timesteps = output_timesteps
@@ -122,6 +137,11 @@ class AFNO2D(nn.Module):
             raise ValueError(f"Expected 5D input (B, T, C, H, W), got shape {x.shape}")
 
         B, T, C, H, W = x.shape
+        if (H, W) != self.img_size:
+            raise ValueError(
+                f"AFNO2D was built for img_size={self.img_size} but got input {H}x{W}. "
+                "Its spectral weights depend on the grid size; set model.img_size to match."
+            )
 
         # Flatten Temporal and Channel dimensions
         # [B, T, C, H, W] -> [B, T*C, H, W]
@@ -147,4 +167,8 @@ class AFNO2D(nn.Module):
         # x = x.unsqueeze(2)
         x = x.reshape(B, self.output_timesteps, self.output_channels, H, W)
 
+        if self.nonnegativity == "relu":
+            return torch.relu(x)
+        if self.nonnegativity == "softplus":
+            return nn.functional.softplus(x)
         return x
