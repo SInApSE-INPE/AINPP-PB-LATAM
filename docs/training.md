@@ -48,7 +48,7 @@ defaults:
   - _self_
   - model: unet/direct
   - discriminator: patchgan
-  - training: gan
+  - training: default
   - dataset: gsmap
   - loss: hybrid_mse_ssim
   - inference: default
@@ -500,6 +500,7 @@ Additional constructor parameters supported by the code:
 - `depth`
 - `patch_size`
 - `num_blocks`
+- `nonnegativity`
 
 Training behavior:
 
@@ -516,9 +517,9 @@ Best when:
 
 Critical caveat:
 
-- `AFNO2D` defaults to `img_size=(880, 970)` and `patch_size=10`,
-- if your dataset crops are `320 x 320`, you should override `model.img_size` accordingly,
-- `patch_size` must divide both image dimensions used by the model.
+- the spectral weights are sized for the input grid, so `model.img_size` is taken automatically from `dataset.dataset.patch_height`/`patch_width`,
+- inputs of a different size (e.g. full-domain inference) raise an error,
+- `patch_size` (default 10) must divide both image dimensions.
 
 Examples:
 
@@ -527,8 +528,7 @@ python main.py task=train \
   model=afno/direct \
   dataset.dataset.patch_height=320 \
   dataset.dataset.patch_width=320 \
-  +model.img_size=[320,320] \
-  +model.patch_size=10 \
+  model.patch_size=10 \
   +model.embed_dim=384 \
   +model.depth=12 \
   +model.num_blocks=12
@@ -539,8 +539,7 @@ python main.py task=train \
   model=afno/direct \
   dataset.dataset.patch_height=256 \
   dataset.dataset.patch_width=256 \
-  +model.img_size=[256,256] \
-  +model.patch_size=16
+  model.patch_size=16
 ```
 
 ### ResNet50
@@ -882,10 +881,9 @@ python main.py task=train \
 
 These are important when designing experiments:
 
-- `UNetAutoRegressive` does not interpolate root dimensions in its YAML by default.
-- `AFNO2D` requires `img_size` and `patch_size` compatibility with the actual crop size.
+- `AFNO2D` takes `img_size` from the dataset patch size; `patch_size` must divide it.
 - The scheduler block exists in config but is not currently consumed by the supervised engine.
-- The current `task=train` path in `main.py` does not yet branch into `run_gan_training` automatically.
+- `task=train` in `main.py` is supervised only and rejects `training=gan`; use `scripts/train_gan.py`.
 - `timm` backbones depend on the installed deep learning extras and pretrained weight availability.
 - Large patch sizes and deep CNN encoders will increase memory pressure quickly on HPC jobs.
 
@@ -898,7 +896,7 @@ For a reliable benchmark progression:
 3. Sweep rain-emphasis losses such as `weighted_mse` and `torrential`.
 4. Benchmark recurrent behavior with `convlstm/direct`.
 5. Benchmark transfer-learning encoders with `resnet50/direct`, `inceptionv4/direct`, and `xception/direct`.
-6. Use `afno/direct` only after aligning `model.img_size` with the actual crop geometry.
+6. Benchmark the spectral model with `afno/direct`.
 
 ## Minimal Reproducible Training Recipes
 
@@ -942,6 +940,5 @@ python main.py task=train \
   training=default \
   loss=spectral \
   dataset.dataset.patch_height=320 \
-  dataset.dataset.patch_width=320 \
-  +model.img_size=[320,320]
+  dataset.dataset.patch_width=320
 ```

@@ -13,7 +13,7 @@ defaults:
   - _self_
   - model: unet/direct
   - discriminator: patchgan
-  - training: gan
+  - training: default   # supervised; GAN training uses scripts/train_gan.py with training=gan
   - dataset: gsmap
   - loss: hybrid_mse_ssim
   - inference: default

@@ -73,9 +73,13 @@ class AINPPPBLATAMDataset(Dataset[TensorPair]):
                 If None, uses patch_height (no overlap).
             patch_stride_w (Optional[int]): Horizontal stride for patch generation.
                 If None, uses patch_width (no overlap).
-            steps_per_epoch (Optional[int]): If set, enables Random Sampling mode
-                with this many batches per epoch. If None, uses Deterministic Iteration.
-            seed (int): Random seed for sampling reproducibility.
+            steps_per_epoch (Optional[int]): If set, enables Random Sampling mode and
+                ``len(dataset)`` equals this value, i.e. it is the number of SAMPLES (not
+                batches) per epoch. If None, uses Deterministic Iteration.
+            seed (int): Random seed for sampling reproducibility. In Random Sampling mode
+                sample ``idx`` of epoch ``e`` is drawn from an RNG seeded with
+                ``(seed, e, idx)``: independent of DataLoader workers, different every
+                epoch (call ``set_epoch``) and reproducible.
             consolidated (bool): Whether to use consolidated metadata for Zarr.
             input_var (str): Variable name for input data.
             target_var (str): Variable name for target data.
@@ -107,7 +111,11 @@ class AINPPPBLATAMDataset(Dataset[TensorPair]):
 
         # Type conversion
         self.dtype = getattr(torch, dtype) if isinstance(dtype, str) else dtype
-        self.rng = np.random.default_rng(seed)
+        # A single shared RNG would be copied into every DataLoader worker (and re-copied
+        # every epoch), producing duplicated and repeated samples. Draws are instead derived
+        # per (seed, epoch, idx) in __getitem__.
+        self.seed = int(seed)
+        self.epoch = 0
 
         # Patch Config (Stored to resolve after opening Zarr)
         self._cfg_patch_h = patch_height
@@ -233,6 +241,16 @@ class AINPPPBLATAMDataset(Dataset[TensorPair]):
 
         return [(i, j) for i in i_list for j in j_list]
 
+    def set_epoch(self, epoch: int) -> None:
+        """
+        Sets the epoch used to seed Random Sampling, so each epoch draws new samples.
+
+        Must be called in the main process before iterating the DataLoader (workers are
+        re-created per epoch and receive a copy of this value). Datasets that never call
+        it (e.g. validation) keep a fixed, reproducible random subset.
+        """
+        self.epoch = int(epoch)
+
     def __len__(self) -> int:
         if self.steps_per_epoch is not None:
             return int(self.steps_per_epoch)
@@ -242,8 +260,9 @@ class AINPPPBLATAMDataset(Dataset[TensorPair]):
         # Sampling Logic
         if self.steps_per_epoch is not None:
             # Random Sampling (Training Mode)
-            t0 = self.valid_t0[int(self.rng.integers(0, len(self.valid_t0)))]
-            patch_idx = int(self.rng.integers(0, len(self.patch_origins)))
+            rng = np.random.default_rng([self.seed, self.epoch, int(idx)])
+            t0 = self.valid_t0[int(rng.integers(0, len(self.valid_t0)))]
+            patch_idx = int(rng.integers(0, len(self.patch_origins)))
         else:
             # Deterministic Iteration (Validation Mode)
             n_patches = len(self.patch_origins)

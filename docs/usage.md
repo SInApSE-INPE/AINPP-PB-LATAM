@@ -82,9 +82,7 @@ experiment to keep outputs distinct.
 ### Change the model or variables
 
 Use the training command above with `model=convlstm/direct` or
-`model=unet/autoregressive`, and choose a separate output directory. For AFNO,
-align its image size with the dataset patches, for example
-`model=afno/direct '+model.img_size=[320,320]'`.
+`model=unet/autoregressive`, and choose a separate output directory. For AFNO, `model.img_size` follows the dataset patch size automatically.
 
 To select variable names that are not listed in the dataset YAML, add:
 

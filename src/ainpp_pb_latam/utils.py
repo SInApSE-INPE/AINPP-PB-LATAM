@@ -97,6 +97,24 @@ class EarlyStopping:
         self.val_loss_min = val_loss
 
 
+def set_loader_epoch(loader: Any, epoch: int) -> None:
+    """
+    Propagates the epoch to the loader's dataset (and to its DistributedSampler, if any),
+    so random sampling draws new samples every epoch.
+    """
+    dataset = getattr(loader, "dataset", None)
+    if hasattr(dataset, "set_epoch"):
+        if getattr(loader, "persistent_workers", False):
+            logger.warning(
+                "persistent_workers=True: workers keep their own dataset copy, so the "
+                "epoch set here does not reach them and samples repeat across epochs."
+            )
+        dataset.set_epoch(epoch)
+    sampler = getattr(loader, "sampler", None)
+    if hasattr(sampler, "set_epoch"):
+        sampler.set_epoch(epoch)
+
+
 def save_epoch_checkpoint(
     model: nn.Module, epoch: int, save_dir: Union[str, Path], **kwargs: Any
 ) -> None:

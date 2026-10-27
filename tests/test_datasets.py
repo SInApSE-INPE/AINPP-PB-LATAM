@@ -98,3 +98,61 @@ class TestAINPPPBLATAMDataset:
         expected = np.ones((4, 4), dtype=int)
         expected[0, 0] = 0  # NaN target
         np.testing.assert_array_equal(coverage, expected)
+
+
+def _sample_ids(loader) -> list:
+    """Identifies each sample by the first input value (unique per (t0, patch) in the store)."""
+    return [int(x[i, 0, 0, 0, 0]) for x, _ in loader for i in range(x.shape[0])]
+
+
+def _arange_zarr(tmp_path: Path) -> Path:
+    import numpy as np
+    import xarray as xr
+
+    values = np.arange(200 * 8 * 8, dtype=np.float32).reshape(200, 8, 8)
+    dims = ("time", "lat", "lon")
+    ds = xr.Dataset({"gsmap_nrt": (dims, values), "gsmap_mvk": (dims, values)})
+    path = tmp_path / "arange.zarr"
+    ds.to_zarr(path, group="train", consolidated=True)
+    return path
+
+
+class TestRandomSampling:
+    """Regression: a shared RNG duplicated samples across workers and repeated them every epoch."""
+
+    def _dataset(self, path: Path) -> AINPPPBLATAMDataset:
+        return AINPPPBLATAMDataset(
+            zarr_path=str(path),
+            group="train",
+            input_timesteps=2,
+            output_timesteps=1,
+            stride=1,
+            patch_height=4,
+            patch_width=4,
+            steps_per_epoch=16,
+            seed=0,
+        )
+
+    def test_no_duplicates_across_workers(self, tmp_path: Path) -> None:
+        from torch.utils.data import DataLoader
+
+        ds = self._dataset(_arange_zarr(tmp_path))
+        ids = _sample_ids(DataLoader(ds, batch_size=2, num_workers=2))
+        # 197 t0 x 4 patches = 788 candidates: 16 draws should be (almost surely) distinct
+        assert len(set(ids)) >= 15
+
+    def test_epochs_draw_new_samples_reproducibly(self, tmp_path: Path) -> None:
+        from torch.utils.data import DataLoader
+
+        from ainpp_pb_latam.utils import set_loader_epoch
+
+        loader = DataLoader(self._dataset(_arange_zarr(tmp_path)), batch_size=4, num_workers=2)
+        set_loader_epoch(loader, 1)
+        epoch1 = _sample_ids(loader)
+        set_loader_epoch(loader, 2)
+        epoch2 = _sample_ids(loader)
+        set_loader_epoch(loader, 1)
+        epoch1_again = _sample_ids(loader)
+
+        assert epoch1 != epoch2
+        assert epoch1 == epoch1_again

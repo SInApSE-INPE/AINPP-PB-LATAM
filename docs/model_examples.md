@@ -98,10 +98,10 @@ python main.py task=train "${MODEL_ARGS[@]}" training=default \
 
 ## AFNO
 
-Uses Fourier-domain blocks. Its Python image-size default is `[880,970]`, so explicitly match `model.img_size` to the 320 × 320 dataset patches. The internal `model.patch_size` defaults to 10 and must divide both dimensions; it is separate from the dataset crop size.
+Uses Fourier-domain blocks. Its spectral weights are sized for the input grid; `model.img_size` is taken automatically from `dataset.dataset.patch_height`/`patch_width`, and the model raises a clear error if an input of another size is passed. The internal `model.patch_size` defaults to 10 and must divide both dimensions; it is separate from the dataset crop size.
 
 ```bash
-MODEL_ARGS=(model=afno/direct '+model.img_size=[320,320]')
+MODEL_ARGS=(model=afno/direct)
 export MODEL_RUN=outputs/model_examples/afno
 python main.py task=train "${MODEL_ARGS[@]}" training=default \
   loss=hybrid_mse_ssim \
@@ -198,7 +198,7 @@ architecture. See [Training Models](training.md) for model-specific details.
 
 After running one of the blocks above, keep its `MODEL_ARGS` and `MODEL_RUN`
 values in the same shell. The following command works with each recipe's selected
-architecture and checkpoint, including AFNO's image-size override.
+architecture and checkpoint.
 
 ```bash
 export MODEL_CHECKPOINT="$MODEL_RUN/checkpoints/best_model.pt"
@@ -259,7 +259,6 @@ being recorded in configuration.
 
 The repository also contains a GAN training engine and a PatchGAN discriminator.
 They are not an additional selectable `model=gan` configuration. The unified
-`main.py` training handler currently invokes supervised training even when
-`training=gan` is selected, so that override is not a working adversarial-training
-recipe. The examples above cover all seven model YAML configurations currently
+`main.py` training handler runs supervised training only and refuses
+`training=gan` with an error; adversarial training uses `scripts/train_gan.py`. The examples above cover all seven model YAML configurations currently
 available through this CLI, including both UNet forecasting strategies.
